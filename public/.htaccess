@@ -1,3 +1,7 @@
+# Принудительно PHP 8.3 для хостинга (раскомментировать, если панель не переключила версию)
+# AddHandler application/x-httpd-php83 .php
+# Или для части панелей: AddHandler php83-script .php
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
