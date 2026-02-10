@@ -6,6 +6,7 @@
     <title>@yield('title', 'Стихотворения поэтов классиков')</title>
     <meta name="description" content="@yield('meta_description', 'Портал классической поэзии')">
     <link rel="canonical" href="{{ url()->current() }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     @stack('meta')
     <link rel="preload" href="{{ asset('fonts/literata/literata-400-cyrillic.woff2') }}" as="font" type="font/woff2" crossorigin>
     @php

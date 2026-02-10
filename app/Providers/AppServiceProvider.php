@@ -25,7 +25,11 @@ class AppServiceProvider extends ServiceProvider
         Paginator::defaultView('pagination.default');
 
         View::composer('layouts.partials.site-header', function ($view) {
-            $view->with('counterCode', SiteSetting::get('counter_code', ''));
+            try {
+                $view->with('counterCode', SiteSetting::get('counter_code', ''));
+            } catch (\Throwable $e) {
+                $view->with('counterCode', '');
+            }
         });
     }
 }
