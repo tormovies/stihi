@@ -11,7 +11,9 @@ class PoemLikeController extends Controller
     public const COOKIE_NAME = 'poem_likes';
     public const READ_COOKIE_NAME = 'poem_read';
     private const COOKIE_DAYS = 365;
-    public const READ_COOKIE_MAX = 50;
+    /** Максимум id в cookie «Прочитанное» и «Понравившееся», чтобы не превысить лимит браузера (~4 КБ). */
+    public const READ_COOKIE_MAX = 300;
+    public const LIKES_COOKIE_MAX = 300;
 
     /**
      * Список id прочитанных стихов из cookie (последние READ_COOKIE_MAX).
@@ -80,6 +82,7 @@ class PoemLikeController extends Controller
             $ids = [];
         }
         $ids = array_values(array_filter($ids, fn ($i) => (int) $i !== $poem->id));
+        $ids = array_slice($ids, -self::LIKES_COOKIE_MAX);
         if ($poem->likes > 0) {
             $poem->decrement('likes');
         }
@@ -98,6 +101,7 @@ class PoemLikeController extends Controller
             $ids = [];
         }
         $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+        $ids = array_slice($ids, -self::LIKES_COOKIE_MAX);
         $poems = collect();
         if ($ids !== []) {
             $byId = Poem::with('author')->whereIn('id', $ids)->whereNotNull('published_at')->get()->keyBy('id');
@@ -140,6 +144,7 @@ class PoemLikeController extends Controller
         }
         $poem->increment('likes');
         $ids[] = $poem->id;
+        $ids = array_slice($ids, -self::LIKES_COOKIE_MAX);
         $cookie = cookie(self::COOKIE_NAME, json_encode($ids), self::COOKIE_DAYS * 24 * 60, '/', null, false, true);
         return response()->json(['likes' => $poem->fresh()->likes])->cookie($cookie);
     }
