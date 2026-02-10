@@ -36,6 +36,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::resource('authors', AdminAuthorController::class)->except('show');
     Route::resource('poems', AdminPoemController::class)->except('show');
     Route::resource('pages', AdminPageController::class)->except('show');
+    Route::get('security', [\App\Http\Controllers\Admin\SecurityController::class, 'index'])->name('security.index');
+    Route::post('security', [\App\Http\Controllers\Admin\SecurityController::class, 'index'])->name('security.update');
     Route::get('seo', [AdminSeoController::class, 'index'])->name('seo.index');
     Route::post('seo/templates', [AdminSeoController::class, 'updateTemplates'])->name('seo.templates.update');
     Route::post('seo/pages', [AdminSeoController::class, 'storeSeoPage'])->name('seo.pages.store');

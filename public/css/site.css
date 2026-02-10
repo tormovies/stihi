@@ -1229,6 +1229,44 @@ body.admin {
   border-color: var(--border);
 }
 .admin-btn-secondary:hover { background: var(--border); }
+.admin-btn-active { font-weight: 600; border-color: var(--accent); }
+/* Лог в админке «Безопасность» — на всю ширину карточки, стиль как у полей формы */
+.admin-log-wrap {
+  width: 100%;
+  margin: 0.75rem 0 0;
+}
+.admin-log-wrap .admin-log-view,
+.admin-card .admin-log-view {
+  display: block;
+  width: 100% !important;
+  min-width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  min-height: 280px;
+  max-height: min(60vh, 520px);
+  overflow: auto;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Consolas, monospace;
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  box-sizing: border-box;
+  resize: vertical;
+  transition: border-color 0.15s;
+}
+.admin-log-view:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(107, 68, 35, 0.15);
+}
+.theme-dark .admin-log-view:focus {
+  box-shadow: 0 0 0 2px rgba(201, 169, 98, 0.2);
+}
 .admin-btn-danger {
   background: transparent;
   color: #b91c1c;

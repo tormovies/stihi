@@ -19,6 +19,7 @@
             <a href="{{ route('admin.poems.index') }}">Стихи</a>
             <a href="{{ route('admin.pages.index') }}">Страницы</a>
             <a href="{{ route('admin.seo.index') }}">SEO</a>
+            <a href="{{ route('admin.security.index') }}">Безопасность</a>
             <a href="{{ route('home') }}" target="_blank" rel="noopener">Сайт ↗</a>
             <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Сменить тему">☀️ / 🌙</button>
             <form action="{{ route('admin.logout') }}" method="POST" class="inline">
