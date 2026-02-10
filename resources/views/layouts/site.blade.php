@@ -26,6 +26,45 @@
     </script>
     <script>
 (function() {
+  var burger = document.getElementById('burger-toggle');
+  var menu = document.getElementById('burger-menu');
+  var clearRead = document.getElementById('clear-read-btn');
+  var readCookieName = 'poem_read';
+  if (burger && menu) {
+    burger.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var open = menu.getAttribute('aria-hidden') !== 'true';
+      menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      menu.classList.toggle('is-open', !open);
+    });
+    document.addEventListener('click', function() {
+      menu.setAttribute('aria-hidden', 'true');
+      burger.setAttribute('aria-expanded', 'false');
+      menu.classList.remove('is-open');
+    });
+    menu.addEventListener('click', function(e) { e.stopPropagation(); });
+  }
+  if (clearRead) {
+    clearRead.addEventListener('click', function() {
+      if (!confirm('Очистить список прочитанного?')) return;
+      document.cookie = readCookieName + '=; path=/; max-age=0';
+      if (menu) { menu.classList.remove('is-open'); menu.setAttribute('aria-hidden', 'true'); }
+      if (burger) burger.setAttribute('aria-expanded', 'false');
+      var toast = document.createElement('div');
+      toast.className = 'site-toast';
+      toast.setAttribute('role', 'status');
+      toast.textContent = 'Список прочитанного очищен';
+      document.body.appendChild(toast);
+      setTimeout(function() {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+      }, 3000);
+    });
+  }
+})();
+    </script>
+    <script>
+(function() {
   var input = document.getElementById('site-search-input');
   var dropdown = document.getElementById('site-search-dropdown');
   if (!input || !dropdown) return;
@@ -43,6 +82,19 @@
     dropdown.innerHTML = items;
     dropdown.classList.add('is-open');
     dropdown.setAttribute('aria-hidden', 'false');
+  }
+  function decodeHtmlEntities(str) {
+    if (str == null || typeof str !== 'string') return str;
+    var div = document.createElement('div');
+    div.innerHTML = str;
+    return div.textContent || div.innerText || str;
+  }
+  function escapeHtml(s) {
+    if (s == null) return '';
+    s = decodeHtmlEntities(String(s));
+    var div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
   }
   function render(data) {
     var html = [];
@@ -62,11 +114,6 @@
       html.push('</ul></div>');
     }
     if (html.length) show(html.join('')); else hide();
-  }
-  function escapeHtml(s) {
-    var div = document.createElement('div');
-    div.textContent = s;
-    return div.innerHTML;
   }
   input.addEventListener('input', function() {
     clearTimeout(timer);

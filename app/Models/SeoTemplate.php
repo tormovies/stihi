@@ -85,6 +85,9 @@ class SeoTemplate extends Model
         if ($type === 'home') {
             return 'Стихотворения поэтов классиков';
         }
+        if ($type === 'favorites') {
+            return 'Понравившееся';
+        }
         if ($type === 'poem' && $entity) {
             return e_decode($entity->title ?? '');
         }
@@ -122,6 +125,9 @@ class SeoTemplate extends Model
 
     protected static function defaultTitle(string $type, $entity): string
     {
+        if ($type === 'favorites') {
+            return 'Понравившееся | Стихотворения поэтов классиков';
+        }
         if ($type === 'poem' && $entity) {
             return e_decode($entity->title) . ' — ' . e_decode($entity->author->name ?? '');
         }
@@ -136,6 +142,9 @@ class SeoTemplate extends Model
 
     protected static function defaultDescription(string $type, $entity): string
     {
+        if ($type === 'favorites') {
+            return 'Стихи, отмеченные вами как понравившиеся. Читайте избранные произведения русских поэтов-классиков в одном месте.';
+        }
         if ($type === 'poem' && $entity) {
             return 'Стихотворение ' . e_decode($entity->title) . ', ' . e_decode($entity->author->name ?? '') . '. Читать текст.';
         }

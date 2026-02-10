@@ -53,7 +53,13 @@ class SlugController extends Controller
         $author = Author::where('slug', $slug)->first();
         if ($author) {
             $poems = $author->publishedPoems()->orderBy('title')->paginate(50);
-            return view('author', ['author' => $author, 'poems' => $poems]);
+            $readIds = PoemLikeController::getReadIds($request);
+            $readDebug = $request->has('debug') ? [
+                'raw_cookie' => $request->cookie(PoemLikeController::READ_COOKIE_NAME),
+                'read_ids' => $readIds,
+                'count' => count($readIds),
+            ] : null;
+            return view('author', ['author' => $author, 'poems' => $poems, 'readIds' => $readIds, 'read_debug' => $readDebug]);
         }
 
         $poem = Poem::with('author')->where('slug', $slug)->whereNotNull('published_at')->first();
@@ -66,9 +72,20 @@ class SlugController extends Controller
                     $likedIds = $dec;
                 }
             }
+            $readIds = PoemLikeController::getReadIds($request);
+            $isRead = in_array($poem->id, $readIds, true);
+            $readDebug = $request->has('debug') ? [
+                'raw_cookie' => $request->cookie(PoemLikeController::READ_COOKIE_NAME),
+                'read_ids' => $readIds,
+                'count' => count($readIds),
+                'current_id' => $poem->id,
+                'is_read' => $isRead,
+            ] : null;
             return view('poem', [
                 'poem' => $poem,
                 'liked' => in_array($poem->id, $likedIds, true),
+                'is_read' => $isRead,
+                'read_debug' => $readDebug,
             ]);
         }
 

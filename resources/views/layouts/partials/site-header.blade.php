@@ -21,18 +21,9 @@
     <meta property="og:locale" content="ru_RU">
     @stack('og_meta')
     @stack('json_ld')
-    <!-- Yandex.Metrika counter -->
-    <script type="text/javascript">
-        (function(m,e,t,r,i,k,a){
-            m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-            m[i].l=1*new Date();
-            for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-            k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-        })(window, document,'script','https://mc.yandex.ru/metrika/tag.js', 'ym');
-        ym(99307577, 'init', {clickmap:true, referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-    </script>
-    <noscript><div><img src="https://mc.yandex.ru/watch/99307577" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-    <!-- /Yandex.Metrika counter -->
+    @if(!empty($counterCode))
+{!! $counterCode !!}
+    @endif
 </head>
 <body id="top">
     <header class="site-header">
@@ -43,7 +34,16 @@
                     <input type="search" class="site-search-input" id="site-search-input" placeholder="Поиск по стихам и авторам…" autocomplete="off" aria-label="Поиск по стихам и авторам">
                     <div class="site-search-dropdown" id="site-search-dropdown" role="listbox" aria-hidden="true"></div>
                 </div>
-                <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Переключить тему">Тема</button>
+                <div class="site-burger-wrap">
+                    <button type="button" class="site-burger-btn" id="burger-toggle" aria-label="Меню" aria-expanded="false" aria-haspopup="true">
+                        <span class="site-burger-icon" aria-hidden="true"></span>
+                    </button>
+                    <div class="site-burger-menu" id="burger-menu" aria-hidden="true">
+                        <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Переключить тему">Тема</button>
+                        <a href="{{ route('favorites') }}" class="site-burger-item">Понравившееся</a>
+                        <button type="button" class="site-burger-item" id="clear-read-btn" aria-label="Очистить список прочитанного">Очистить прочитанное</button>
+                    </div>
+                </div>
             </div>
         </div>
     </header>

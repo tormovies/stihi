@@ -8,7 +8,7 @@
     <h1>{{ ($seoHome?->h1 ?: null) ?? ($page ? e_decode($page->title) : 'Стихотворения поэтов классиков') }}</h1>
     <ul class="authors-list authors-grid">
         @foreach($authors as $author)
-            <li><a href="/{{ $author->slug }}/">{{ e_decode($author->name) }}</a></li>
+            <li><a href="/{{ $author->slug }}/" class="list-row-link">{{ e_decode($author->name) }}</a></li>
         @endforeach
     </ul>
 </div>

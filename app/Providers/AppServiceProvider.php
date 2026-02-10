@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\SiteSetting;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,5 +23,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::defaultView('pagination.default');
+
+        View::composer('layouts.partials.site-header', function ($view) {
+            $view->with('counterCode', SiteSetting::get('counter_code', ''));
+        });
     }
 }

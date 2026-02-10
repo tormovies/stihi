@@ -260,6 +260,193 @@ a:hover { color: var(--link-hover); }
   opacity: 0.8;
 }
 
+/* Бургер-меню в шапке */
+.site-burger-wrap {
+  position: relative;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.site-burger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  font: inherit;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+.site-burger-btn:hover {
+  color: var(--text);
+  background: var(--border);
+}
+.site-burger-btn:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.site-burger-icon {
+  display: block;
+  width: 1.15rem;
+  height: 0.9rem;
+  position: relative;
+}
+.site-burger-icon::before,
+.site-burger-icon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+}
+.site-burger-icon::before { top: 0; }
+.site-burger-icon::after { bottom: 0; }
+.site-burger-icon {
+  background: linear-gradient(to bottom, transparent 0.35rem, currentColor 0.35rem, currentColor calc(0.35rem + 2px), transparent calc(0.35rem + 2px));
+  background-clip: padding-box;
+}
+.site-burger-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.35rem;
+  min-width: max-content;
+  padding: 0.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px var(--shadow);
+  display: none;
+  flex-direction: column;
+  gap: 0.35rem;
+  z-index: 100;
+}
+.site-burger-menu.is-open {
+  display: flex;
+}
+.site-burger-menu .theme-toggle {
+  margin-left: 0;
+  justify-content: flex-start;
+}
+.site-burger-menu .theme-toggle,
+.site-burger-menu .site-burger-item {
+  white-space: nowrap;
+}
+.site-burger-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+.site-burger-item:hover {
+  color: var(--text);
+  background: var(--border);
+}
+.site-burger-item:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.site-header .site-burger-menu a.site-burger-item {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.site-header .site-burger-menu a.site-burger-item:hover {
+  color: var(--text);
+  background: var(--border);
+}
+
+.site-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.6rem 1.25rem;
+  font-size: 0.9rem;
+  color: var(--bg-card);
+  background: var(--text);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px var(--shadow);
+  z-index: 10001;
+  animation: site-toast-in 0.25s ease;
+}
+@keyframes site-toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(0.5rem); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.error-page {
+  padding: 2rem 0;
+  text-align: center;
+}
+.error-page-code {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+  line-height: 1.2;
+}
+.error-page-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  color: var(--text);
+}
+.error-page-text {
+  margin: 0 0 1.5rem;
+  color: var(--text-muted);
+  max-width: 36em;
+  margin-left: auto;
+  margin-right: auto;
+}
+.error-page-search {
+  position: relative;
+  max-width: 320px;
+  margin: 0 auto 1.5rem;
+  text-align: left;
+}
+.error-page-search .site-search-input {
+  width: 100%;
+}
+.error-page-search .site-search-dropdown {
+  left: 0;
+  right: 0;
+}
+.error-page-actions {
+  margin: 0;
+}
+.error-page-actions .poem-btn {
+  display: inline-flex;
+}
+
 .site-main {
   padding: 1.5rem 0 2rem;
 }
@@ -310,11 +497,24 @@ a:hover { color: var(--link-hover); }
 .authors-list li,
 .poems-list li {
   margin: 0.35em 0;
-  padding: 0.25em 0;
+  padding: 0;
   border-bottom: 1px solid var(--border);
 }
 .authors-list li:last-child,
 .poems-list li:last-child { border-bottom: none; }
+/* Вся строка кликабельна */
+.authors-list .list-row-link,
+.poems-list .list-row-link {
+  display: block;
+  padding: 0.25em 0;
+  color: inherit;
+  text-decoration: none;
+}
+.authors-list .list-row-link:hover,
+.poems-list .list-row-link:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
 
 /* Список стихов на странице автора — две колонки адаптивно */
 .poems-list {
@@ -329,7 +529,84 @@ a:hover { color: var(--link-hover); }
 }
 .poems-list li {
   margin: 0;
+  padding: 0;
+}
+.poems-list .list-row-link {
   padding: 0.4em 0;
+}
+.poems-list .list-row-link.is-read {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* Понравившиеся: строка = название + автор + кнопка Убрать */
+.favorites-by-authors { margin-top: 0.5rem; }
+.favorites-author-block {
+  margin-bottom: 1.5rem;
+}
+.favorites-author-block:last-child { margin-bottom: 0; }
+.favorites-author-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: var(--text);
+}
+.favorites-author-link {
+  color: var(--accent);
+  text-decoration: none;
+}
+.favorites-author-link:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+.favorites-poem-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.35em 0;
+  padding: 0.25em 0;
+  font-size: 0.95rem;
+}
+.favorites-poem-link {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+.favorites-poem-link:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+.favorites-remove-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  font-family: inherit;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+.favorites-remove-btn:hover {
+  color: var(--text);
+  background: var(--border);
+  border-color: var(--border);
+}
+.favorites-remove-btn:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.favorites-empty {
+  color: var(--text-muted);
+  margin-top: 0.5rem;
 }
 
 /* Главная: 3 колонки авторов, адаптивно */
@@ -366,9 +643,12 @@ a:hover { color: var(--link-hover); }
 .authors-grid li {
   border-bottom: 1px solid var(--border);
   margin: 0;
-  padding: 0.4em 0;
+  padding: 0;
 }
 .authors-grid li:last-child { border-bottom: none; }
+.authors-grid .list-row-link {
+  padding: 0.4em 0;
+}
 
 /* Таблица из контента WordPress на главной — на мобильных скролл */
 .page-body--front {
@@ -454,6 +734,18 @@ a:hover { color: var(--link-hover); }
 }
 .poem-btn-like.is-liked { color: var(--accent); }
 .theme-dark .poem-btn-like.is-liked { color: var(--accent-hover); }
+.poem-btn-read.is-read {
+  opacity: 0.9;
+  cursor: default;
+  color: var(--text-muted);
+}
+
+/* На мобильных кнопка «Прочитано» под Назад и Нравится */
+@media (max-width: 767px) {
+  .poem-actions .poem-btn-read {
+    flex-basis: 100%;
+  }
+}
 
 /* Кнопка «Наверх» — в ряду справа (ПК) и плавающая копия вне контейнера (мобильные) */
 .poem-actions .back-to-top-inline {
@@ -1070,6 +1362,7 @@ body.admin {
   box-shadow: 0 0 0 2px rgba(201, 169, 98, 0.2);
 }
 .admin-form .admin-form-group textarea { min-height: 120px; resize: vertical; }
+.admin-textarea-monospace { font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Consolas, monospace; font-size: 0.875rem; }
 .admin-form .admin-form-group .admin-form-error {
   font-size: 0.85rem;
   color: #b91c1c;

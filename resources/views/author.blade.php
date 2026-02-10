@@ -27,9 +27,17 @@
     @endif
     <ul class="poems-list">
         @foreach($poems as $poem)
-            <li><a href="/{{ $poem->slug }}/">{{ e_decode($poem->title) }}</a></li>
+            <li><a href="/{{ $poem->slug }}/" class="list-row-link {{ in_array($poem->id, $readIds ?? [], true) ? 'is-read' : '' }}">{{ e_decode($poem->title) }}</a></li>
         @endforeach
     </ul>
     <div class="pagination-wrap">{{ $poems->links() }}</div>
+    @if(!empty($read_debug))
+    <div class="read-debug" style="margin-top:1.5rem;padding:1rem;background:#f0f0f0;border:1px solid #ccc;font-family:monospace;font-size:12px;word-break:break-all;">
+        <strong>Отладка «Прочитано» на странице автора (?debug)</strong><br>
+        raw_cookie: {{ $read_debug['raw_cookie'] === null ? 'null' : (strlen($read_debug['raw_cookie'] ?? '') > 200 ? substr($read_debug['raw_cookie'], 0, 200) . '…' : ($read_debug['raw_cookie'] ?? '')) }}<br>
+        count: {{ $read_debug['count'] ?? 0 }}<br>
+        read_ids: {{ json_encode($read_debug['read_ids'] ?? []) }}
+    </div>
+    @endif
 </div>
 @endsection

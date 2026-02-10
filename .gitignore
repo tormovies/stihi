@@ -24,3 +24,5 @@ Homestead.yaml
 Thumbs.db
 /backup-old
 backup-db.sql
+backup-db-utf8.sql
+backup-db-clean.sql

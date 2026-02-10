@@ -16,6 +16,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/search/suggest', [SearchController::class, 'suggest'])->name('search.suggest');
 Route::post('/poem/{id}/like', [PoemLikeController::class, 'store'])->name('poem.like')->where('id', '[0-9]+');
+Route::post('/poem/{id}/unlike', [PoemLikeController::class, 'destroy'])->name('poem.unlike')->where('id', '[0-9]+');
+Route::post('/poem/read/{id}', [PoemLikeController::class, 'markAsRead'])->name('poem.read')->where('id', '[0-9]+');
+Route::get('/favorites', [PoemLikeController::class, 'favorites'])->name('favorites');
 Route::get('/robots.txt', function () {
     $sitemap = rtrim(config('app.url'), '/') . '/sitemap.xml';
     return response("User-agent: *\nDisallow:\n\nSitemap: {$sitemap}\n", 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
@@ -39,6 +42,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::put('seo/pages/{seoPage}', [AdminSeoController::class, 'updateSeoPage'])->name('seo.pages.update');
     Route::delete('seo/pages/{seoPage}', [AdminSeoController::class, 'destroySeoPage'])->name('seo.pages.destroy');
     Route::post('seo/sitemap-refresh', [AdminSeoController::class, 'sitemapRefresh'])->name('seo.sitemap.refresh');
+    Route::post('seo/counters', [AdminSeoController::class, 'updateCounters'])->name('seo.counters.update');
 });
 
 Route::get('/{slug}', [SlugController::class, 'show'])->name('slug');

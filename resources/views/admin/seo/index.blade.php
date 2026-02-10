@@ -17,14 +17,14 @@
     <p class="admin-card-desc">Главная — meta и заголовки для главной (/). Остальные — для страниц, авторов и стихов без своих meta. Подстановки: <code>{title}</code>, <code>{name}</code>, <code>{author}</code>.</p>
     <form method="POST" action="{{ route('admin.seo.templates.update') }}" class="admin-form">
         @csrf
-        @foreach(['home' => 'Главная (/)', 'page' => 'Страницы', 'author' => 'Авторы', 'poem' => 'Стихи'] as $type => $label)
+        @foreach(['home' => 'Главная (/)', 'page' => 'Страницы', 'author' => 'Авторы', 'poem' => 'Стихи', 'favorites' => 'Понравившееся (/favorites)'] as $type => $label)
             @php $t = $templates->get($type); @endphp
             <details class="admin-spoiler" {{ old('_spoiler') === $type ? 'open' : '' }}>
                 <summary>{{ $label }}</summary>
                 <div class="admin-spoiler-body">
                     <div class="admin-form-group">
                         <label for="tpl_meta_title_{{ $type }}">Meta title</label>
-                        <input type="text" id="tpl_meta_title_{{ $type }}" name="templates[{{ $type }}][meta_title]" value="{{ old("templates.{$type}.meta_title", $t?->meta_title) }}" placeholder="{{ $type === 'home' ? 'Стихотворения поэтов классиков' : ($type === 'poem' ? '{title} — {author}' : ($type === 'author' ? '{name} — стихи' : '{title}')) }}">
+                        <input type="text" id="tpl_meta_title_{{ $type }}" name="templates[{{ $type }}][meta_title]" value="{{ old("templates.{$type}.meta_title", $t?->meta_title) }}" placeholder="{{ $type === 'home' ? 'Стихотворения поэтов классиков' : ($type === 'favorites' ? 'Понравившееся | Стихотворения поэтов классиков' : ($type === 'poem' ? '{title} — {author}' : ($type === 'author' ? '{name} — стихи' : '{title}'))) }}">
                     </div>
                     <div class="admin-form-group">
                         <label for="tpl_meta_desc_{{ $type }}">Meta description</label>
@@ -32,7 +32,7 @@
                     </div>
                     <div class="admin-form-group">
                         <label for="tpl_h1_{{ $type }}">H1</label>
-                        <input type="text" id="tpl_h1_{{ $type }}" name="templates[{{ $type }}][h1]" value="{{ old("templates.{$type}.h1", $t?->h1) }}" placeholder="{{ $type === 'home' ? 'Стихотворения поэтов классиков' : ($type === 'author' ? '{name}' : ($type === 'poem' ? '{title}' : '{title}')) }}">
+                        <input type="text" id="tpl_h1_{{ $type }}" name="templates[{{ $type }}][h1]" value="{{ old("templates.{$type}.h1", $t?->h1) }}" placeholder="{{ $type === 'home' ? 'Стихотворения поэтов классиков' : ($type === 'favorites' ? 'Понравившееся' : ($type === 'author' ? '{name}' : ($type === 'poem' ? '{title}' : '{title}'))) }}">
                     </div>
                     <div class="admin-form-group">
                         <label for="tpl_h1_desc_{{ $type }}">Описание под H1</label>
@@ -99,6 +99,35 @@
                 </table>
             </div>
             <div class="pagination-wrap">{{ $seoPages->links() }}</div>
+        </div>
+    </details>
+</div>
+
+{{-- Код счётчиков — вставляется перед </head> --}}
+<div class="admin-card">
+    <details class="admin-spoiler" {{ old('_spoiler') === 'counters' ? 'open' : '' }}>
+        <summary>Код счётчиков</summary>
+        <div class="admin-spoiler-body">
+            <p class="admin-card-desc" style="margin-top: 0;">HTML-код счётчиков (Яндекс.Метрика, Google Analytics и т.п.) вставляется перед <code>&lt;/head&gt;</code> на всех страницах сайта. Будьте осторожны: вводите только проверенный код.</p>
+            <form method="POST" action="{{ route('admin.seo.counters.update') }}" class="admin-form">
+                @csrf
+                <div class="admin-form-group">
+                    <label for="counter_code">Код счётчиков (HTML)</label>
+                    <script type="application/json" id="counter_code_value">{!! json_encode(old('counter_code', $counterCode ?? ''), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) !!}</script>
+                    <textarea id="counter_code" name="counter_code" rows="12" class="admin-textarea-monospace" placeholder="<!-- Счётчик -->
+<script>...</script>"></textarea>
+                <script>
+                    (function() {
+                        var data = document.getElementById('counter_code_value');
+                        var el = document.getElementById('counter_code');
+                        if (data && el) try { var r = data.textContent; el.value = r ? JSON.parse(r) : ''; } catch (e) { el.value = (data.textContent || ''); }
+                    })();
+                </script>
+                </div>
+                <div class="admin-form-actions">
+                    <button type="submit" class="admin-btn admin-btn-primary">Сохранить код счётчиков</button>
+                </div>
+            </form>
         </div>
     </details>
 </div>
