@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+{{-- Старый шаблон, не используется (используются sitemap-index и sitemap-urlset). Без <? чтобы view:cache не ломал скомпилированный файл. --}}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
         <loc>{{ url('/') }}</loc>
