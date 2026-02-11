@@ -26,7 +26,14 @@ class SitemapController extends Controller
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
-            throw $e;
+            // Для /sitemap.xml отдаём XML, а не HTML-страницу 500
+            $message = config('app.debug') ? $e->getMessage() : 'Sitemap temporarily unavailable.';
+            $xml = '<?xml version="1.0" encoding="UTF-8"?><error><message>' . htmlspecialchars($message, ENT_XML1, 'UTF-8') . '</message></error>';
+            return response($xml, 503, [
+                'Content-Type' => 'application/xml',
+                'Charset' => 'UTF-8',
+                'Retry-After' => '300',
+            ]);
         }
     }
 
@@ -51,11 +58,12 @@ class SitemapController extends Controller
         } else {
             $baseUrl = rtrim(config('app.url'), '/') . '/sitemap.xml';
             $lastmod = Cache::get(self::CACHE_UPDATED_AT);
+            $lastmodFormatted = $this->formatLastmod($lastmod);
             $sitemapUrls = [];
             for ($i = 1; $i <= $totalChunks; $i++) {
                 $sitemapUrls[] = [
                     'loc' => $baseUrl . '?page=' . $i,
-                    'lastmod' => $lastmod ? (new \DateTime($lastmod))->format('c') : null,
+                    'lastmod' => $lastmodFormatted,
                 ];
             }
             $xml = view('sitemap-index', ['sitemapUrls' => $sitemapUrls])->render();
@@ -70,6 +78,18 @@ class SitemapController extends Controller
     public static function getLastUpdatedAt(): ?string
     {
         return Cache::get(self::CACHE_UPDATED_AT);
+    }
+
+    private function formatLastmod(?string $value): ?string
+    {
+        if (empty($value)) {
+            return null;
+        }
+        try {
+            return (new \DateTime($value))->format('c');
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /** Regenerate and store sitemap entries (e.g. from admin). Uses chunking to avoid memory limit. */
