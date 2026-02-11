@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AuthorController as AdminAuthorController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PageController as AdminPageController;
 use App\Http\Controllers\Admin\PoemController as AdminPoemController;
+use App\Http\Controllers\Admin\SecurityController as AdminSecurityController;
 use App\Http\Controllers\Admin\SeoController as AdminSeoController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PoemLikeController;
@@ -37,6 +38,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::resource('authors', AdminAuthorController::class)->except('show');
     Route::resource('poems', AdminPoemController::class)->except('show');
     Route::resource('pages', AdminPageController::class)->except('show');
+    Route::get('security', [AdminSecurityController::class, 'index'])->name('security.index');
+    Route::post('security', [AdminSecurityController::class, 'index'])->name('security.update');
     Route::get('seo', [AdminSeoController::class, 'index'])->name('seo.index');
     Route::post('seo/templates', [AdminSeoController::class, 'updateTemplates'])->name('seo.templates.update');
     Route::post('seo/pages', [AdminSeoController::class, 'storeSeoPage'])->name('seo.pages.store');
