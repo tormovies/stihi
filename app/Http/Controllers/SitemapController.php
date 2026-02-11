@@ -16,6 +16,33 @@ class SitemapController extends Controller
     public const CACHE_UPDATED_AT = 'sitemap_updated_at';
     public const CHUNK_SIZE = 1000;
 
+    /** Для отладки: /sitemap-debug?key=XXX (SITEMAP_DEBUG_KEY в .env). &test=1 — попытка отдать sitemap и поймать ошибку. */
+    public function debug(Request $request)
+    {
+        $key = env('SITEMAP_DEBUG_KEY');
+        if (!$key || $request->query('key') !== $key) {
+            abort(404);
+        }
+        $out = [];
+        $out[] = 'Cache store: ' . config('cache.default');
+        $count = Cache::get(self::CACHE_ENTRIES_KEY . '_count');
+        $chunk1 = Cache::get(self::CACHE_ENTRIES_KEY . '_1');
+        $out[] = '_count: ' . ($count === null ? 'null' : $count);
+        $out[] = '_1: ' . ($chunk1 === null ? 'null' : (is_array($chunk1) ? 'array(' . count($chunk1) . ')' : gettype($chunk1)));
+        $out[] = '_updated_at: ' . (Cache::get(self::CACHE_UPDATED_AT) ?? 'null');
+        if ($request->query('test')) {
+            $out[] = '';
+            try {
+                $response = $this->buildSitemapResponse($request);
+                $out[] = 'buildSitemapResponse: OK, ' . strlen($response->getContent()) . ' bytes';
+            } catch (\Throwable $e) {
+                $out[] = 'buildSitemapResponse FAILED: ' . $e->getMessage();
+                $out[] = $e->getFile() . ':' . $e->getLine();
+            }
+        }
+        return response(implode("\n", $out), 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
+    }
+
     public function index(Request $request): Response
     {
         try {

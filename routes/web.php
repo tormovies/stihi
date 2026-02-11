@@ -24,6 +24,7 @@ Route::get('/robots.txt', function () {
     return response("User-agent: *\nDisallow:\n\nSitemap: {$sitemap}\n", 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
 })->name('robots');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemap-debug', [SitemapController::class, 'debug'])->name('sitemap.debug');
 
 Route::middleware('guest')->group(function () {
     Route::get('admin/login', [AdminAuthController::class, 'showLoginForm'])->name('login');
@@ -36,15 +37,12 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::resource('authors', AdminAuthorController::class)->except('show');
     Route::resource('poems', AdminPoemController::class)->except('show');
     Route::resource('pages', AdminPageController::class)->except('show');
-    Route::get('security', [\App\Http\Controllers\Admin\SecurityController::class, 'index'])->name('security.index');
-    Route::post('security', [\App\Http\Controllers\Admin\SecurityController::class, 'index'])->name('security.update');
     Route::get('seo', [AdminSeoController::class, 'index'])->name('seo.index');
     Route::post('seo/templates', [AdminSeoController::class, 'updateTemplates'])->name('seo.templates.update');
     Route::post('seo/pages', [AdminSeoController::class, 'storeSeoPage'])->name('seo.pages.store');
     Route::put('seo/pages/{seoPage}', [AdminSeoController::class, 'updateSeoPage'])->name('seo.pages.update');
     Route::delete('seo/pages/{seoPage}', [AdminSeoController::class, 'destroySeoPage'])->name('seo.pages.destroy');
     Route::post('seo/sitemap-refresh', [AdminSeoController::class, 'sitemapRefresh'])->name('seo.sitemap.refresh');
-    Route::post('seo/counters', [AdminSeoController::class, 'updateCounters'])->name('seo.counters.update');
 });
 
 Route::get('/{slug}', [SlugController::class, 'show'])->name('slug');
