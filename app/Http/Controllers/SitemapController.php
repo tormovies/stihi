@@ -89,7 +89,7 @@ class SitemapController extends Controller
                 self::clearCache();
                 throw new \RuntimeException('Sitemap cache incomplete or not readable. Use CACHE_STORE=database so admin and web share cache, or run "Update sitemap" again.');
             }
-            $xml = view('sitemap-urlset', ['urls' => $chunk])->render();
+            $xml = $this->xmlDeclaration() . "\n" . view('sitemap-urlset', ['urls' => $chunk])->render();
         } else {
             $baseUrl = rtrim(config('app.url'), '/') . '/sitemap.xml';
             $lastmod = Cache::get(self::CACHE_UPDATED_AT);
@@ -101,7 +101,7 @@ class SitemapController extends Controller
                     'lastmod' => $lastmodFormatted,
                 ];
             }
-            $xml = view('sitemap-index', ['sitemapUrls' => $sitemapUrls])->render();
+            $xml = $this->xmlDeclaration() . "\n" . view('sitemap-index', ['sitemapUrls' => $sitemapUrls])->render();
         }
 
         return response($xml, 200, [
@@ -113,6 +113,11 @@ class SitemapController extends Controller
     public static function getLastUpdatedAt(): ?string
     {
         return Cache::get(self::CACHE_UPDATED_AT);
+    }
+
+    private static function xmlDeclaration(): string
+    {
+        return '<?xml version="1.0" encoding="UTF-8"?>';
     }
 
     private function formatLastmod(?string $value): ?string
