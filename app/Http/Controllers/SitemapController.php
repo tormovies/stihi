@@ -47,13 +47,21 @@ class SitemapController extends Controller
         }
 
         $totalChunks = (int) Cache::get(self::CACHE_ENTRIES_KEY . '_count', 1);
+        if ($totalChunks > 0 && Cache::get(self::CACHE_ENTRIES_KEY . '_1') === null) {
+            self::clearCache();
+            throw new \RuntimeException('Sitemap cache incomplete or not readable. Set CACHE_STORE=database in .env so admin and web share cache, then run "Update sitemap" in admin.');
+        }
 
         if ($page !== null && $page !== '') {
             $pageNum = (int) $page;
             if ($pageNum < 1 || $pageNum > $totalChunks) {
                 abort(404);
             }
-            $chunk = Cache::get(self::CACHE_ENTRIES_KEY . '_' . $pageNum, []);
+            $chunk = Cache::get(self::CACHE_ENTRIES_KEY . '_' . $pageNum);
+            if (!is_array($chunk) || $chunk === []) {
+                self::clearCache();
+                throw new \RuntimeException('Sitemap cache incomplete or not readable. Use CACHE_STORE=database so admin and web share cache, or run "Update sitemap" again.');
+            }
             $xml = view('sitemap-urlset', ['urls' => $chunk])->render();
         } else {
             $baseUrl = rtrim(config('app.url'), '/') . '/sitemap.xml';
@@ -133,11 +141,15 @@ class SitemapController extends Controller
 
         $chunks = array_chunk($entries, self::CHUNK_SIZE);
         $ttl = now()->addDays(7);
-        Cache::put(self::CACHE_ENTRIES_KEY . '_count', count($chunks), $ttl);
+        $count = count($chunks);
+        Cache::put(self::CACHE_ENTRIES_KEY . '_count', $count, $ttl);
         foreach ($chunks as $i => $chunk) {
             Cache::put(self::CACHE_ENTRIES_KEY . '_' . ($i + 1), $chunk, $ttl);
         }
-        Cache::put(self::CACHE_UPDATED_AT, now()->toIso8601String(), $ttl);
+        // Дата — только если все чанки записаны и первый читается (один и тот же кеш для админки и веба)
+        if ($count > 0 && Cache::get(self::CACHE_ENTRIES_KEY . '_1') !== null) {
+            Cache::put(self::CACHE_UPDATED_AT, now()->toIso8601String(), $ttl);
+        }
     }
 
     /** Clear sitemap cache (after regenerate, next request will rebuild). */
