@@ -46,6 +46,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::put('seo/pages/{seoPage}', [AdminSeoController::class, 'updateSeoPage'])->name('seo.pages.update');
     Route::delete('seo/pages/{seoPage}', [AdminSeoController::class, 'destroySeoPage'])->name('seo.pages.destroy');
     Route::post('seo/sitemap-refresh', [AdminSeoController::class, 'sitemapRefresh'])->name('seo.sitemap.refresh');
+    Route::post('seo/counters', [AdminSeoController::class, 'updateCounters'])->name('seo.counters.update');
 });
 
 Route::get('/{slug}', [SlugController::class, 'show'])->name('slug');
