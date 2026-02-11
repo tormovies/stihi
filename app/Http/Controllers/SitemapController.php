@@ -8,6 +8,7 @@ use App\Models\Poem;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class SitemapController extends Controller
 {
@@ -17,26 +18,35 @@ class SitemapController extends Controller
 
     public function index(Request $request): Response
     {
+        try {
+            return $this->buildSitemapResponse($request);
+        } catch (\Throwable $e) {
+            Log::error('Sitemap generation failed', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            throw $e;
+        }
+    }
+
+    private function buildSitemapResponse(Request $request): Response
+    {
         $forceRefresh = $request->query('refresh') === '1';
         $page = $request->query('page');
 
-        if ($forceRefresh || !Cache::has(self::CACHE_ENTRIES_KEY)) {
-            $authors = Author::orderBy('name')->get();
-            $poems = Poem::whereNotNull('published_at')->orderBy('updated_at', 'desc')->get();
-            $pages = Page::where('is_published', true)->where('is_home', false)->get();
-            self::regenerate($authors, $poems, $pages);
+        if ($forceRefresh || !Cache::has(self::CACHE_ENTRIES_KEY . '_count')) {
+            self::regenerate();
         }
 
-        $entries = Cache::get(self::CACHE_ENTRIES_KEY);
-        $totalChunks = (int) ceil(count($entries) / self::CHUNK_SIZE);
+        $totalChunks = (int) Cache::get(self::CACHE_ENTRIES_KEY . '_count', 1);
 
         if ($page !== null && $page !== '') {
             $pageNum = (int) $page;
             if ($pageNum < 1 || $pageNum > $totalChunks) {
                 abort(404);
             }
-            $offset = ($pageNum - 1) * self::CHUNK_SIZE;
-            $chunk = array_slice($entries, $offset, self::CHUNK_SIZE);
+            $chunk = Cache::get(self::CACHE_ENTRIES_KEY . '_' . $pageNum, []);
             $xml = view('sitemap-urlset', ['urls' => $chunk])->render();
         } else {
             $baseUrl = rtrim(config('app.url'), '/') . '/sitemap.xml';
@@ -62,15 +72,9 @@ class SitemapController extends Controller
         return Cache::get(self::CACHE_UPDATED_AT);
     }
 
-    /** Regenerate and store sitemap entries (e.g. from admin). */
-    public static function regenerate($authors = null, $poems = null, $pages = null): void
+    /** Regenerate and store sitemap entries (e.g. from admin). Uses chunking to avoid memory limit. */
+    public static function regenerate(): void
     {
-        if ($authors === null) {
-            $authors = Author::orderBy('name')->get();
-            $poems = Poem::whereNotNull('published_at')->orderBy('updated_at', 'desc')->get();
-            $pages = Page::where('is_published', true)->where('is_home', false)->get();
-        }
-
         $entries = [];
 
         $entries[] = [
@@ -80,7 +84,7 @@ class SitemapController extends Controller
             'priority' => '1.0',
         ];
 
-        foreach ($authors as $author) {
+        foreach (Author::orderBy('name')->select('slug')->cursor() as $author) {
             $entries[] = [
                 'loc' => url($author->slug),
                 'lastmod' => null,
@@ -89,7 +93,7 @@ class SitemapController extends Controller
             ];
         }
 
-        foreach ($poems as $poem) {
+        foreach (Poem::whereNotNull('published_at')->orderBy('updated_at', 'desc')->select('slug', 'updated_at', 'published_at')->cursor() as $poem) {
             $entries[] = [
                 'loc' => url($poem->slug),
                 'lastmod' => $poem->updated_at?->toW3cString() ?? $poem->published_at?->toW3cString(),
@@ -98,7 +102,7 @@ class SitemapController extends Controller
             ];
         }
 
-        foreach ($pages as $page) {
+        foreach (Page::where('is_published', true)->where('is_home', false)->select('slug')->cursor() as $page) {
             $entries[] = [
                 'loc' => url($page->slug),
                 'lastmod' => null,
@@ -107,14 +111,23 @@ class SitemapController extends Controller
             ];
         }
 
-        Cache::put(self::CACHE_ENTRIES_KEY, $entries, now()->addDays(7));
-        Cache::put(self::CACHE_UPDATED_AT, now()->toIso8601String(), now()->addDays(7));
+        $chunks = array_chunk($entries, self::CHUNK_SIZE);
+        $ttl = now()->addDays(7);
+        Cache::put(self::CACHE_ENTRIES_KEY . '_count', count($chunks), $ttl);
+        foreach ($chunks as $i => $chunk) {
+            Cache::put(self::CACHE_ENTRIES_KEY . '_' . ($i + 1), $chunk, $ttl);
+        }
+        Cache::put(self::CACHE_UPDATED_AT, now()->toIso8601String(), $ttl);
     }
 
     /** Clear sitemap cache (after regenerate, next request will rebuild). */
     public static function clearCache(): void
     {
-        Cache::forget(self::CACHE_ENTRIES_KEY);
+        $count = (int) Cache::get(self::CACHE_ENTRIES_KEY . '_count', 0);
+        Cache::forget(self::CACHE_ENTRIES_KEY . '_count');
+        for ($i = 1; $i <= $count; $i++) {
+            Cache::forget(self::CACHE_ENTRIES_KEY . '_' . $i);
+        }
         Cache::forget(self::CACHE_UPDATED_AT);
     }
 }
