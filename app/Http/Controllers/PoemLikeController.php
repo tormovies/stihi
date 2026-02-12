@@ -14,6 +14,19 @@ class PoemLikeController extends Controller
     public const READ_COOKIE_MAX = 50;
 
     /**
+     * Список id прочитанных стихов для отображения (страница автора, стиха).
+     * Cookie хранит slug'и — по ним получаем id из БД.
+     */
+    public static function getReadIds(Request $request): array
+    {
+        $slugs = self::getReadSlugs($request);
+        if ($slugs === []) {
+            return [];
+        }
+        return Poem::whereIn('slug', $slugs)->whereNotNull('published_at')->pluck('id')->all();
+    }
+
+    /**
      * Список slug'ов прочитанных стихов из cookie (последние READ_COOKIE_MAX).
      */
     public static function getReadSlugs(Request $request): array
