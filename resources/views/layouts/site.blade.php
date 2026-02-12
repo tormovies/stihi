@@ -34,8 +34,8 @@
     burger.addEventListener('click', function(e) {
       e.stopPropagation();
       var open = menu.getAttribute('aria-hidden') !== 'true';
-      menu.setAttribute('aria-hidden', open ? 'false' : 'true');
-      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      menu.setAttribute('aria-hidden', open ? 'true' : 'false');
+      burger.setAttribute('aria-expanded', open ? 'false' : 'true');
       menu.classList.toggle('is-open', !open);
     });
     document.addEventListener('click', function() {

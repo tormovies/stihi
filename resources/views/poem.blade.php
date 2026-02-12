@@ -42,7 +42,7 @@
             <span class="poem-btn-like-text">Нравится</span>
             <span class="poem-btn-like-count">{{ (int) ($poem->likes ?? 0) }}</span>
         </button>
-        <button type="button" class="poem-btn poem-btn-read {{ ($is_read ?? false) ? 'is-read' : '' }}" id="poem-btn-read" data-poem-id="{{ $poem->id }}" aria-label="{{ ($is_read ?? false) ? 'Прочитано' : 'Отметить прочитанным' }}" {{ ($is_read ?? false) ? 'disabled' : '' }}>{{ ($is_read ?? false) ? 'Прочитано ✓' : 'Прочитано' }}</button>
+        <button type="button" class="poem-btn poem-btn-read {{ ($is_read ?? false) ? 'is-read' : '' }}" id="poem-btn-read" data-poem-slug="{{ $poem->slug }}" aria-label="{{ ($is_read ?? false) ? 'Прочитано' : 'Отметить прочитанным' }}" {{ ($is_read ?? false) ? 'disabled' : '' }}>{{ ($is_read ?? false) ? 'Прочитано ✓' : 'Прочитано' }}</button>
         <a href="#top" class="poem-btn back-to-top back-to-top-inline" aria-label="Наверх">Наверх</a>
     </div>
     @if(!empty($read_debug))
@@ -50,9 +50,9 @@
         <strong>Отладка «Прочитано» (добавь ?debug в URL)</strong><br>
         raw_cookie: {{ $read_debug['raw_cookie'] === null ? 'null' : (strlen($read_debug['raw_cookie'] ?? '') > 200 ? substr($read_debug['raw_cookie'], 0, 200) . '…' : ($read_debug['raw_cookie'] ?? '')) }}<br>
         count: {{ $read_debug['count'] ?? 0 }}<br>
-        current_id: {{ $read_debug['current_id'] ?? '' }}<br>
+        current_slug: {{ $read_debug['current_slug'] ?? '' }}<br>
         is_read: {{ ($read_debug['is_read'] ?? false) ? 'да' : 'нет' }}<br>
-        read_ids: {{ json_encode($read_debug['read_ids'] ?? []) }}
+        read_slugs: {{ json_encode($read_debug['read_slugs'] ?? []) }}
     </div>
     @endif
 </div>
@@ -76,16 +76,14 @@
     });
   }
   var likeBtn = document.getElementById('poem-btn-like');
-  if (likeBtn) {
+  if (likeBtn && !likeBtn.classList.contains('is-liked')) {
     likeBtn.addEventListener('click', function() {
       var id = likeBtn.getAttribute('data-poem-id');
       var countEl = likeBtn.querySelector('.poem-btn-like-count');
-      var isLiked = likeBtn.classList.contains('is-liked');
-      var url = isLiked ? '{{ url("/poem") }}/' + id + '/unlike' : '{{ url("/poem") }}/' + id + '/like';
       var csrf = document.querySelector('meta[name="csrf-token"]');
       var body = new FormData();
       body.append('_token', csrf ? csrf.getAttribute('content') : '');
-      fetch(url, {
+      fetch('{{ url('/poem') }}/' + id + '/like', {
         method: 'POST',
         headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
         body: body,
@@ -93,25 +91,16 @@
       }).then(function(r) { return r.json(); }).then(function(d) {
         if (d.likes !== undefined) {
           if (countEl) countEl.textContent = d.likes;
-          if (isLiked) {
-            likeBtn.classList.remove('is-liked');
-            likeBtn.querySelector('.poem-btn-like-text').textContent = 'Нравится';
-          } else {
-            likeBtn.classList.add('is-liked');
-            likeBtn.querySelector('.poem-btn-like-text').textContent = 'Убрать из понравившегося';
-          }
+          likeBtn.classList.add('is-liked');
+          likeBtn.disabled = true;
         }
       });
     });
-    if (likeBtn.classList.contains('is-liked')) {
-      var textEl = likeBtn.querySelector('.poem-btn-like-text');
-      if (textEl) textEl.textContent = 'Убрать из понравившегося';
-    }
   }
   var readBtn = document.getElementById('poem-btn-read');
   if (readBtn) {
-    var poemId = readBtn.getAttribute('data-poem-id');
-    var readUrl = '{{ url("/poem/read") }}/' + poemId;
+    var currentSlug = readBtn.getAttribute('data-poem-slug');
+    var readUrl = '{{ url("/poem/read") }}/' + encodeURIComponent(currentSlug);
     readBtn.addEventListener('click', function() {
       if (readBtn.classList.contains('is-read')) return;
       var csrf = document.querySelector('meta[name="csrf-token"]');

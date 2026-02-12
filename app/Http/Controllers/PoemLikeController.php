@@ -11,14 +11,12 @@ class PoemLikeController extends Controller
     public const COOKIE_NAME = 'poem_likes';
     public const READ_COOKIE_NAME = 'poem_read';
     private const COOKIE_DAYS = 365;
-    /** Максимум id в cookie «Прочитанное» и «Понравившееся», чтобы не превысить лимит браузера (~4 КБ). */
-    public const READ_COOKIE_MAX = 300;
-    public const LIKES_COOKIE_MAX = 300;
+    public const READ_COOKIE_MAX = 50;
 
     /**
-     * Список id прочитанных стихов из cookie (последние READ_COOKIE_MAX).
+     * Список slug'ов прочитанных стихов из cookie (последние READ_COOKIE_MAX).
      */
-    public static function getReadIds(Request $request): array
+    public static function getReadSlugs(Request $request): array
     {
         $raw = $request->cookie(self::READ_COOKIE_NAME);
         if ($raw === null || $raw === '') {
@@ -44,23 +42,24 @@ class PoemLikeController extends Controller
         if (!is_array($dec)) {
             return [];
         }
-        $dec = array_values(array_filter(array_map('intval', $dec), fn ($id) => $id > 0));
+        $dec = array_values(array_filter($dec, 'is_string'));
         return array_slice($dec, -self::READ_COOKIE_MAX);
     }
 
     /**
-     * Отметить стих как прочитанный (храним id). Cookie устанавливается с сервера.
+     * Отметить стих как прочитанный. Cookie устанавливается с сервера (надёжнее, чем из JS).
      */
-    public function markAsRead(Request $request, int $id): JsonResponse
+    public function markAsRead(Request $request, string $slug): JsonResponse
     {
-        $poem = Poem::whereNotNull('published_at')->findOrFail($id);
-        $ids = self::getReadIds($request);
-        $ids = array_values(array_filter($ids, fn ($i) => $i !== $poem->id));
-        $ids[] = $poem->id;
-        $ids = array_slice($ids, -self::READ_COOKIE_MAX);
+        $poem = Poem::where('slug', $slug)->whereNotNull('published_at')->firstOrFail();
+        $slugs = self::getReadSlugs($request);
+        $slug = $poem->slug;
+        $slugs = array_values(array_filter($slugs, fn ($s) => $s !== $slug));
+        $slugs[] = $slug;
+        $slugs = array_slice($slugs, -self::READ_COOKIE_MAX);
         $cookie = cookie(
             self::READ_COOKIE_NAME,
-            json_encode($ids),
+            json_encode($slugs),
             self::COOKIE_DAYS * 24 * 60,
             '/',
             null,
@@ -68,64 +67,6 @@ class PoemLikeController extends Controller
             false
         );
         return response()->json(['ok' => true])->cookie($cookie);
-    }
-
-    /**
-     * Убрать лайк: удалить из cookie и уменьшить счётчик в БД.
-     */
-    public function destroy(Request $request, int $id): JsonResponse
-    {
-        $poem = Poem::whereNotNull('published_at')->findOrFail($id);
-        $raw = $request->cookie(self::COOKIE_NAME);
-        $ids = $raw ? json_decode($raw, true) : [];
-        if (!is_array($ids)) {
-            $ids = [];
-        }
-        $ids = array_values(array_filter($ids, fn ($i) => (int) $i !== $poem->id));
-        $ids = array_slice($ids, -self::LIKES_COOKIE_MAX);
-        if ($poem->likes > 0) {
-            $poem->decrement('likes');
-        }
-        $cookie = cookie(self::COOKIE_NAME, json_encode($ids), self::COOKIE_DAYS * 24 * 60, '/', null, false, true);
-        return response()->json(['likes' => $poem->fresh()->likes])->cookie($cookie);
-    }
-
-    /**
-     * Страница «Понравившиеся»: стихи из cookie poem_likes.
-     */
-    public function favorites(Request $request): \Illuminate\View\View
-    {
-        $raw = $request->cookie(self::COOKIE_NAME);
-        $ids = $raw ? json_decode($raw, true) : [];
-        if (!is_array($ids)) {
-            $ids = [];
-        }
-        $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
-        $ids = array_slice($ids, -self::LIKES_COOKIE_MAX);
-        $poems = collect();
-        if ($ids !== []) {
-            $byId = Poem::with('author')->whereIn('id', $ids)->whereNotNull('published_at')->get()->keyBy('id');
-            foreach ($ids as $id) {
-                if ($byId->has($id)) {
-                    $poems->push($byId->get($id));
-                }
-            }
-        }
-        // Группировка по авторам: порядок авторов — по первому появлению в списке, стихи внутри автора — по названию
-        $authorOrder = $poems->pluck('author_id')->unique()->filter()->values();
-        $poemsByAuthor = $authorOrder->map(function ($authorId) use ($poems) {
-            $authorPoems = $poems->where('author_id', $authorId);
-            $author = $authorPoems->first()->author ?? null;
-            return [
-                'author' => $author,
-                'poems' => $authorPoems->sortBy('title')->values(),
-            ];
-        })->filter(fn ($g) => $g['author'] !== null)->values();
-
-        return view('favorites', [
-            'poems' => $poems,
-            'poemsByAuthor' => $poemsByAuthor,
-        ]);
     }
 
     /**
@@ -144,7 +85,6 @@ class PoemLikeController extends Controller
         }
         $poem->increment('likes');
         $ids[] = $poem->id;
-        $ids = array_slice($ids, -self::LIKES_COOKIE_MAX);
         $cookie = cookie(self::COOKIE_NAME, json_encode($ids), self::COOKIE_DAYS * 24 * 60, '/', null, false, true);
         return response()->json(['likes' => $poem->fresh()->likes])->cookie($cookie);
     }
