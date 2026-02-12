@@ -334,38 +334,104 @@ a:hover { color: var(--link-hover); }
   margin-left: 0;
   justify-content: flex-start;
 }
-.site-burger-clear-read {
-  display: inline-flex;
-  align-items: center;
+/* Один стиль для ссылки и кнопки в бургер-меню */
+.site-burger-menu .site-burger-link,
+.site-burger-menu .site-burger-clear-read {
+  display: block;
+  width: 100%;
   padding: 0.4rem 0.75rem;
   font-size: 0.875rem;
   font-family: inherit;
   font-weight: 500;
   color: var(--text-muted);
   background: none;
-  border: 1px solid transparent;
+  border: none;
   border-radius: 6px;
   cursor: pointer;
   text-align: left;
-  transition: color 0.2s, background 0.2s, border-color 0.2s;
-}
-.site-burger-clear-read:hover {
-  color: var(--text);
-  background: var(--border);
-}
-.site-burger-link {
-  display: block;
-  padding: 0.4rem 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-muted);
   text-decoration: none;
-  border-radius: 6px;
   transition: color 0.2s, background 0.2s;
 }
-.site-burger-link:hover {
+.site-burger-menu .site-burger-link:hover,
+.site-burger-menu .site-burger-clear-read:hover {
   color: var(--text);
   background: var(--border);
+}
+.site-burger-menu .site-burger-link:focus,
+.site-burger-menu .site-burger-clear-read:focus {
+  outline: 2px solid var(--text-muted);
+  outline-offset: 2px;
+}
+.site-burger-menu .site-burger-clear-read {
+  white-space: nowrap;
+}
+
+/* Понравившиеся: по авторам, кнопка × убрать */
+.favorites-by-authors { margin-top: 0.5rem; }
+.favorites-author-block { margin-bottom: 1.5rem; }
+.favorites-author-block:last-child { margin-bottom: 0; }
+.favorites-author-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: var(--text);
+}
+.favorites-author-link {
+  color: var(--accent);
+  text-decoration: none;
+}
+.favorites-author-link:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+.favorites-poem-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.35em 0;
+  padding: 0.25em 0;
+  font-size: 0.95rem;
+}
+.favorites-poem-link {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+.favorites-poem-link:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+.favorites-remove-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  font-family: inherit;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+.favorites-remove-btn:hover {
+  color: var(--text);
+  background: var(--border);
+  border-color: var(--border);
+}
+.favorites-remove-btn:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.favorites-empty {
+  color: var(--text-muted);
+  margin-top: 0.5rem;
 }
 
 .site-main {

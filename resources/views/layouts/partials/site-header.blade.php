@@ -41,8 +41,8 @@
                     </button>
                     <div class="site-burger-menu" id="burger-menu" aria-hidden="true">
                         <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Переключить тему">Тема</button>
-                        <a href="{{ route('favorites') }}" class="site-burger-item">Понравившееся</a>
-                        <button type="button" class="site-burger-item" id="clear-read-btn" aria-label="Очистить список прочитанного">Очистить прочитанное</button>
+                        <a href="{{ route('favorites') }}" class="site-burger-link">Понравившееся</a>
+                        <button type="button" class="site-burger-clear-read" id="clear-read-btn" aria-label="Очистить список прочитанного">Очистить прочитанное</button>
                     </div>
                 </div>
             </div>

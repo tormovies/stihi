@@ -42,7 +42,7 @@
             <span class="poem-btn-like-text">Нравится</span>
             <span class="poem-btn-like-count">{{ (int) ($poem->likes ?? 0) }}</span>
         </button>
-        <button type="button" class="poem-btn poem-btn-read {{ ($is_read ?? false) ? 'is-read' : '' }}" id="poem-btn-read" data-poem-slug="{{ $poem->slug }}" aria-label="{{ ($is_read ?? false) ? 'Прочитано' : 'Отметить прочитанным' }}" {{ ($is_read ?? false) ? 'disabled' : '' }}>{{ ($is_read ?? false) ? 'Прочитано ✓' : 'Прочитано' }}</button>
+        <button type="button" class="poem-btn poem-btn-read {{ ($is_read ?? false) ? 'is-read' : '' }}" id="poem-btn-read" data-poem-id="{{ $poem->id }}" aria-label="{{ ($is_read ?? false) ? 'Прочитано' : 'Отметить прочитанным' }}" {{ ($is_read ?? false) ? 'disabled' : '' }}>{{ ($is_read ?? false) ? 'Прочитано ✓' : 'Прочитано' }}</button>
         <a href="#top" class="poem-btn back-to-top back-to-top-inline" aria-label="Наверх">Наверх</a>
     </div>
     @if(!empty($read_debug))
@@ -50,9 +50,9 @@
         <strong>Отладка «Прочитано» (добавь ?debug в URL)</strong><br>
         raw_cookie: {{ $read_debug['raw_cookie'] === null ? 'null' : (strlen($read_debug['raw_cookie'] ?? '') > 200 ? substr($read_debug['raw_cookie'], 0, 200) . '…' : ($read_debug['raw_cookie'] ?? '')) }}<br>
         count: {{ $read_debug['count'] ?? 0 }}<br>
-        current_slug: {{ $read_debug['current_slug'] ?? '' }}<br>
+        current_id: {{ $read_debug['current_id'] ?? '' }}<br>
         is_read: {{ ($read_debug['is_read'] ?? false) ? 'да' : 'нет' }}<br>
-        read_slugs: {{ json_encode($read_debug['read_slugs'] ?? []) }}
+        read_ids: {{ json_encode($read_debug['read_ids'] ?? []) }}
     </div>
     @endif
 </div>
@@ -99,8 +99,8 @@
   }
   var readBtn = document.getElementById('poem-btn-read');
   if (readBtn) {
-    var currentSlug = readBtn.getAttribute('data-poem-slug');
-    var readUrl = '{{ url("/poem/read") }}/' + encodeURIComponent(currentSlug);
+    var poemId = readBtn.getAttribute('data-poem-id');
+    var readUrl = '{{ url("/poem/read") }}/' + poemId;
     readBtn.addEventListener('click', function() {
       if (readBtn.classList.contains('is-read')) return;
       var csrf = document.querySelector('meta[name="csrf-token"]');
