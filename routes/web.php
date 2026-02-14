@@ -15,6 +15,7 @@ use App\Http\Controllers\SlugController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/search', [SearchController::class, 'index'])->name('search.index');
 Route::get('/search/suggest', [SearchController::class, 'suggest'])->name('search.suggest');
 Route::post('/poem/{id}/like', [PoemLikeController::class, 'store'])->name('poem.like')->where('id', '[0-9]+');
 Route::post('/poem/{id}/unlike', [PoemLikeController::class, 'destroy'])->name('poem.unlike')->where('id', '[0-9]+');

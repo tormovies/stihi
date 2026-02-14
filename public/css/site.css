@@ -525,6 +525,17 @@ a:hover { color: var(--link-hover); }
   text-decoration: line-through;
   color: var(--text-muted);
 }
+.list-row-meta {
+  font-size: 0.9em;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* Страница поиска */
+.search-empty { color: var(--text-muted); margin-top: 0.5rem; }
+.search-section { margin-top: 1.5rem; }
+.search-section:first-of-type { margin-top: 0.75rem; }
+.search-section-title { font-size: 1.1rem; font-weight: 600; margin: 0 0 0.5rem; color: var(--text); }
 
 /* Главная: 3 колонки авторов, адаптивно */
 .home-tagline { margin-bottom: 1.25rem; font-size: 0.9rem; font-weight: 400; color: var(--text-muted); }
@@ -763,6 +774,22 @@ a:hover { color: var(--link-hover); }
   border-bottom: 1px solid var(--border);
 }
 .site-search-group:last-child { border-bottom: none; }
+.site-search-all-wrap {
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid var(--border);
+}
+.site-search-all-link {
+  display: block;
+  padding: 0.35rem 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+}
+.site-search-all-link:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
 .site-search-group-title {
   display: block;
   padding: 0.25rem 0.75rem;
@@ -1392,6 +1419,8 @@ body.admin {
 }
 .admin-filter-bar input[type="text"] { min-width: 200px; }
 .admin-filter-bar select { min-width: 160px; }
+.admin-filter-bar .admin-filter-label { margin-right: 0.25rem; white-space: nowrap; }
+.admin-filter-bar .admin-filter-number { width: 5rem; min-width: 5rem; }
 
 /* Admin login page */
 .theme-toggle-wrap {

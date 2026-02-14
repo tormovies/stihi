@@ -96,7 +96,7 @@
     div.textContent = s;
     return div.innerHTML;
   }
-  function render(data) {
+  function render(data, query) {
     var html = [];
     if (data.authors && data.authors.length) {
       html.push('<div class="site-search-group"><span class="site-search-group-title">Авторы</span><ul class="site-search-list">');
@@ -113,6 +113,9 @@
       });
       html.push('</ul></div>');
     }
+    if (query && query.length >= 3) {
+      html.push('<div class="site-search-group site-search-all-wrap"><a href="' + baseUrl + '/search?q=' + encodeURIComponent(query) + '" class="site-search-all-link">Все результаты</a></div>');
+    }
     if (html.length) show(html.join('')); else hide();
   }
   input.addEventListener('input', function() {
@@ -122,7 +125,7 @@
     timer = setTimeout(function() {
       fetch(baseUrl + '/search/suggest?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
         .then(function(r) { return r.json(); })
-        .then(render)
+        .then(function(data) { render(data, q); })
         .catch(function() { hide(); });
     }, 250);
   });
@@ -141,7 +144,15 @@
     }
   });
   input.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') { hide(); input.blur(); }
+    if (e.key === 'Escape') { hide(); input.blur(); return; }
+    if (e.key === 'Enter') {
+      var q = input.value.trim();
+      if (q.length >= 3) {
+        e.preventDefault();
+        hide();
+        window.location.href = baseUrl + '/search?q=' + encodeURIComponent(q);
+      }
+    }
   });
   document.addEventListener('click', function(e) {
     if (!dropdown.contains(e.target) && e.target !== input) hide();

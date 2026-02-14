@@ -10,7 +10,7 @@
     <p class="error-page-text">Страница удалена или перенесена. Попробуйте воспользоваться поиском или перейдите на главную.</p>
     <div class="error-page-search">
         <label for="error-page-search-input" class="visually-hidden">Поиск по стихам и авторам</label>
-        <input type="search" class="site-search-input error-page-search-input" id="error-page-search-input" placeholder="Поиск по стихам и авторам…" autocomplete="off" aria-label="Поиск по стихам и авторам">
+        <input type="search" class="site-search-input error-page-search-input" id="error-page-search-input" placeholder="Поиск по стихам и авторам…" autocomplete="off" aria-label="Поиск по стихам и авторам" minlength="3">
         <div class="site-search-dropdown error-page-search-dropdown" id="error-page-search-dropdown" role="listbox" aria-hidden="true"></div>
     </div>
     <p class="error-page-actions">

@@ -15,7 +15,7 @@ class PoemController extends Controller
     {
         $sort = $request->get('sort', 'updated_at');
         $order = strtolower($request->get('order', 'desc')) === 'asc' ? 'asc' : 'desc';
-        $allowedSort = ['title', 'updated_at', 'likes'];
+        $allowedSort = ['title', 'updated_at', 'likes', 'body_length'];
         if (!in_array($sort, $allowedSort, true)) {
             $sort = 'updated_at';
         }
@@ -25,10 +25,18 @@ class PoemController extends Controller
             $query->where('author_id', $request->author_id);
         }
         if ($request->filled('q')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('title', 'like', '%' . $request->q . '%')
-                    ->orWhere('slug', 'like', '%' . $request->q . '%');
+            $term = '%' . $request->q . '%';
+            $query->where(function ($q) use ($term) {
+                $q->where('title', 'like', $term)
+                    ->orWhere('slug', 'like', $term)
+                    ->orWhere('body', 'like', $term);
             });
+        }
+        if ($request->filled('length_from') && is_numeric($request->length_from)) {
+            $query->where('body_length', '>=', (int) $request->length_from);
+        }
+        if ($request->filled('length_to') && is_numeric($request->length_to)) {
+            $query->where('body_length', '<=', (int) $request->length_to);
         }
         $poems = $query->paginate(20)->withQueryString();
         $authors = Author::orderBy('name')->get();
