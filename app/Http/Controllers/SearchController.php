@@ -88,10 +88,25 @@ class SearchController extends Controller
         return str_contains($e->getMessage(), 'FULLTEXT') || str_contains($e->getMessage(), '1191');
     }
 
+    /**
+     * Строка для FULLTEXT BOOLEAN MODE с префиксным поиском: каждое слово как "слово*".
+     * Спецсимволы MySQL экранируются.
+     */
+    private function fulltextBooleanPrefix(string $q): string
+    {
+        $escaped = preg_replace('/([+\-*"()\\\\])/', '\\\\$1', $q);
+        $tokens = array_filter(preg_split('/\s+/u', $escaped));
+        $withStar = array_map(fn (string $t) => rtrim($t, '*') . '*', $tokens);
+
+        return implode(' ', $withStar);
+    }
+
     private function searchAuthorsFulltext(string $q): \Illuminate\Database\Eloquent\Builder
     {
-        return Author::whereFullText('name', $q)
-            ->orderByRaw('MATCH(name) AGAINST(? IN NATURAL LANGUAGE MODE) DESC', [$q]);
+        $against = $this->fulltextBooleanPrefix($q);
+
+        return Author::whereFullText('name', $against, ['mode' => 'boolean'])
+            ->orderByRaw('MATCH(name) AGAINST(? IN BOOLEAN MODE) DESC', [$against]);
     }
 
     private function searchAuthorsLike(string $q): \Illuminate\Database\Eloquent\Builder
@@ -102,10 +117,12 @@ class SearchController extends Controller
 
     private function searchPoemsFulltext(string $q): \Illuminate\Database\Eloquent\Builder
     {
+        $against = $this->fulltextBooleanPrefix($q);
+
         return Poem::with('author:id,name,slug')
             ->whereNotNull('published_at')
-            ->whereFullText(['title', 'body'], $q)
-            ->orderByRaw('MATCH(title, body) AGAINST(? IN NATURAL LANGUAGE MODE) DESC', [$q]);
+            ->whereFullText(['title', 'body'], $against, ['mode' => 'boolean'])
+            ->orderByRaw('MATCH(title, body) AGAINST(? IN BOOLEAN MODE) DESC', [$against]);
     }
 
     private function searchPoemsLike(string $q): \Illuminate\Database\Eloquent\Builder
