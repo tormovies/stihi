@@ -108,7 +108,7 @@
     if (data.poems && data.poems.length) {
       html.push('<div class="site-search-group"><span class="site-search-group-title">Стихи</span><ul class="site-search-list">');
       data.poems.forEach(function(p) {
-        var sub = p.author ? ' <span class="site-search-item-meta">' + escapeHtml(p.author) + '</span>' : '';
+        var sub = p.author ? ' — <span class="site-search-item-meta">' + escapeHtml(p.author) + '</span>' : '';
         html.push('<li><a href="' + baseUrl + '/' + p.slug + '/" class="site-search-item">' + escapeHtml(p.title) + sub + '</a></li>');
       });
       html.push('</ul></div>');

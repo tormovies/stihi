@@ -29,7 +29,7 @@
                 <h2 class="search-section-title">Стихи</h2>
                 <ul class="poems-list">
                     @foreach($poems as $poem)
-                        <li><a href="/{{ $poem->slug }}/" class="list-row-link">{{ e_decode($poem->title) }}@if($poem->author) <span class="list-row-meta">{{ e_decode($poem->author->name) }}</span>@endif</a></li>
+                        <li><a href="/{{ $poem->slug }}/" class="list-row-link">{{ e_decode($poem->title) }}@if($poem->author) — <span class="list-row-meta">{{ e_decode($poem->author->name) }}</span>@endif</a></li>
                     @endforeach
                 </ul>
                 <div class="pagination-wrap">{{ $poems->links() }}</div>
