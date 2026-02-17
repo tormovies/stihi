@@ -31,11 +31,11 @@ class SearchController extends Controller
         if (mb_strlen($q) >= 3) {
             try {
                 $authors = $this->searchAuthorsFulltext($q)->get(['id', 'name', 'slug']);
-                $poems = $this->searchPoemsFulltext($q)->paginate(self::POEMS_PER_PAGE, ['id', 'slug', 'title', 'author_id'], 'page');
+                $poems = $this->searchPoemsFulltext($q)->paginate(self::POEMS_PER_PAGE, ['id', 'slug', 'title', 'author_id'], 'page')->withQueryString();
             } catch (QueryException $e) {
                 if ($this->isFulltextError($e)) {
                     $authors = $this->searchAuthorsLike($q)->get(['id', 'name', 'slug']);
-                    $poems = $this->searchPoemsLike($q)->paginate(self::POEMS_PER_PAGE, ['id', 'slug', 'title', 'author_id'], 'page');
+                    $poems = $this->searchPoemsLike($q)->paginate(self::POEMS_PER_PAGE, ['id', 'slug', 'title', 'author_id'], 'page')->withQueryString();
                 } else {
                     throw $e;
                 }
