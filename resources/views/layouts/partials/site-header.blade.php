@@ -1,10 +1,27 @@
 {{-- Вся верхняя часть сайта: head, открытие body, шапка и меню. Менять в одном месте. --}}
+@php
+    // Декодируем сущности и экранируем только " & < > (апостроф ' не трогаем — в атрибутах не нужен &#039;)
+    $safeAttr = function ($s) {
+        $s = trim(strip_tags((string) $s));
+        $s = str_replace(["&#039;", "&#39;", "&apos;"], "'", $s);
+        for ($i = 0; $i < 3; $i++) {
+            $prev = $s;
+            $s = html_entity_decode($s, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $s = preg_replace_callback('/&#(\d+);?/', fn ($m) => mb_chr((int) $m[1], 'UTF-8'), $s);
+            $s = preg_replace_callback('/&#x([0-9a-fA-F]+);?/', fn ($m) => mb_chr((int) hexdec($m[1]), 'UTF-8'), $s);
+            if ($s === $prev) { break; }
+        }
+        return str_replace(['&', '<', '>', '"'], ['&amp;', '&lt;', '&gt;', '&quot;'], $s);
+    };
+    $pageTitle = $safeAttr(view()->yieldContent('title', 'Стихотворения поэтов классиков') ?: 'Стихотворения поэтов классиков');
+    $pageDesc = $safeAttr(view()->yieldContent('meta_description', 'Портал классической поэзии') ?: 'Портал классической поэзии');
+@endphp
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Стихотворения поэтов классиков')</title>
-    <meta name="description" content="@yield('meta_description', 'Портал классической поэзии')">
+    <title>{!! $pageTitle !!}</title>
+    <meta name="description" content="{!! $pageDesc !!}">
     <link rel="canonical" href="{{ url()->current() }}">
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     @stack('meta')
@@ -15,8 +32,8 @@
         $cssPath = public_path($cssFile);
     @endphp
     <link rel="stylesheet" href="{{ asset($cssFile) }}?v={{ file_exists($cssPath) ? filemtime($cssPath) : '' }}">
-    <meta property="og:title" content="{{ e(trim(strip_tags((string) view()->yieldContent('title'))) ?: 'Стихотворения поэтов классиков') }}">
-    <meta property="og:description" content="{{ e(trim(strip_tags((string) view()->yieldContent('meta_description'))) ?: 'Портал классической поэзии') }}">
+    <meta property="og:title" content="{!! $pageTitle !!}">
+    <meta property="og:description" content="{!! $pageDesc !!}">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="ru_RU">

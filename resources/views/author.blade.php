@@ -20,7 +20,8 @@
     <nav class="breadcrumb"><a href="/">Главная</a> → {{ e_decode($author->name) }}</nav>
     <h1>{{ \App\Models\SeoTemplate::renderH1('author', $author) ?: e_decode($author->name) }}</h1>
     @if(\App\Models\SeoTemplate::renderH1Description('author', $author))
-        <p class="author-tagline">{{ \App\Models\SeoTemplate::renderH1Description('author', $author) }}</p>
+        @php $tagline = \App\Models\SeoTemplate::renderH1Description('author', $author); $tagline = str_replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $tagline); @endphp
+        <p class="author-tagline">{!! $tagline !!}</p>
     @endif
     @if($author->years_of_life)
         <p class="author-years">{{ e_decode($author->years_of_life) }}</p>

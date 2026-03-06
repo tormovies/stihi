@@ -21,26 +21,42 @@ class SeoTemplate extends Model
      */
     public static function renderTitle(string $type, $entity): string
     {
-        $str = self::getTitleString($type, $entity);
+        $str = self::decodeEntities(self::getTitleString($type, $entity));
         return self::replacePlaceholders($str, $type, $entity);
     }
 
     public static function renderDescription(string $type, $entity): string
     {
-        $str = self::getDescriptionString($type, $entity);
-        return self::replacePlaceholders($str ?? '', $type, $entity);
+        $str = self::decodeEntities(self::getDescriptionString($type, $entity) ?? '');
+        return self::replacePlaceholders($str, $type, $entity);
     }
 
     public static function renderH1(string $type, $entity): string
     {
-        $str = self::getH1String($type, $entity);
-        return self::replacePlaceholders($str ?? '', $type, $entity);
+        $str = self::decodeEntities(self::getH1String($type, $entity) ?? '');
+        return self::replacePlaceholders($str, $type, $entity);
     }
 
     public static function renderH1Description(string $type, $entity): string
     {
-        $str = self::getH1DescriptionString($type, $entity);
+        $str = self::decodeEntities(self::getH1DescriptionString($type, $entity) ?? '');
         return self::replacePlaceholders($str, $type, $entity);
+    }
+
+    /** Декодирует HTML-сущности в строке (&#039; → ', &amp; → & и т.д.) для вывода без сущностей. */
+    protected static function decodeEntities(string $value): string
+    {
+        $decoded = $value;
+        for ($i = 0; $i < 3; $i++) {
+            $prev = $decoded;
+            $decoded = html_entity_decode($decoded, ENT_QUOTES | ENT_HTML5 | ENT_SUBSTITUTE, 'UTF-8');
+            $decoded = preg_replace_callback('/&#(\d+);?/', fn ($m) => mb_chr((int) $m[1], 'UTF-8'), $decoded);
+            $decoded = preg_replace_callback('/&#x([0-9a-fA-F]+);?/', fn ($m) => mb_chr((int) hexdec($m[1]), 'UTF-8'), $decoded);
+            if ($decoded === $prev) {
+                break;
+            }
+        }
+        return $decoded;
     }
 
     /** Приоритет у полей сущности (автор, страница, стих), иначе глобальный шаблон. */

@@ -8,7 +8,8 @@
     <nav class="breadcrumb"><a href="/">Главная</a> → {{ e_decode($page->title) }}</nav>
     <h1>{{ \App\Models\SeoTemplate::renderH1('page', $page) ?: e_decode($page->title) }}</h1>
     @if(\App\Models\SeoTemplate::renderH1Description('page', $page))
-        <p class="page-tagline">{{ \App\Models\SeoTemplate::renderH1Description('page', $page) }}</p>
+        @php $tagline = \App\Models\SeoTemplate::renderH1Description('page', $page); $tagline = str_replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $tagline); @endphp
+        <p class="page-tagline">{!! $tagline !!}</p>
     @endif
     <div class="page-body">
         {!! \Illuminate\Support\Str::replace(['https://stihotvorenie.su', 'http://stihotvorenie.su'], '', $page->body ?? '') !!}

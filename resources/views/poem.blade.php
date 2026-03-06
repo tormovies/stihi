@@ -29,7 +29,11 @@
     </nav>
     <h1>{{ \App\Models\SeoTemplate::renderH1('poem', $poem) ?: e_decode($poem->title) }}</h1>
     @if(\App\Models\SeoTemplate::renderH1Description('poem', $poem))
-        <p class="author-name">{{ \App\Models\SeoTemplate::renderH1Description('poem', $poem) }}</p>
+        @php
+            $h1Desc = \App\Models\SeoTemplate::renderH1Description('poem', $poem);
+            $h1Desc = str_replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $h1Desc);
+        @endphp
+        <p class="author-name">{!! $h1Desc !!}</p>
     @else
         <p class="author-name">{{ e_decode($poem->author->name) }}</p>
     @endif
