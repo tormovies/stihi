@@ -115,22 +115,113 @@ class SearchController extends Controller
         return Author::where('name', 'like', $term)->orderBy('name');
     }
 
+    /**
+     * Поиск стихов: FULLTEXT по title+body ИЛИ по токенам (каждое слово — в title, body или имени автора).
+     * Сортировка по релевантности: сначала стихи, где совпали и автор и название/текст, затем по FULLTEXT.
+     */
     private function searchPoemsFulltext(string $q): \Illuminate\Database\Eloquent\Builder
     {
         $against = $this->fulltextBooleanPrefix($q);
+        $tokens = $this->searchTokens($q);
 
-        return Poem::with('author:id,name,slug')
-            ->whereNotNull('published_at')
-            ->whereFullText(['title', 'body'], $against, ['mode' => 'boolean'])
-            ->orderByRaw('MATCH(title, body) AGAINST(? IN BOOLEAN MODE) DESC', [$against]);
+        $builder = Poem::with('author:id,name,slug')
+            ->from('poems')
+            ->leftJoin('authors', 'poems.author_id', '=', 'authors.id')
+            ->whereNotNull('poems.published_at')
+            ->where(function ($w) use ($against, $tokens) {
+                $w->whereFullText(['poems.title', 'poems.body'], $against, ['mode' => 'boolean']);
+                if ($tokens !== []) {
+                    $w->orWhere(function ($w2) use ($tokens) {
+                        foreach ($tokens as $token) {
+                            $term = $this->likeTerm($token);
+                            $w2->where(function ($w3) use ($term) {
+                                $w3->where('poems.title', 'like', $term)
+                                    ->orWhere('poems.body', 'like', $term)
+                                    ->orWhere('authors.name', 'like', $term);
+                            });
+                        }
+                    });
+                }
+            })
+            ->select('poems.id', 'poems.slug', 'poems.title', 'poems.author_id');
+
+        $builder = $this->orderPoemsByRelevance($builder, $q, $tokens, true, $against);
+        return $builder;
     }
 
     private function searchPoemsLike(string $q): \Illuminate\Database\Eloquent\Builder
     {
-        $term = '%' . preg_replace('/\s+/', '%', $q) . '%';
-        return Poem::with('author:id,name,slug')
-            ->whereNotNull('published_at')
-            ->where(fn ($w) => $w->where('title', 'like', $term)->orWhere('body', 'like', $term))
-            ->orderBy('title');
+        $wholeTerm = '%' . preg_replace('/\s+/', '%', $q) . '%';
+        $tokens = $this->searchTokens($q);
+
+        $builder = Poem::with('author:id,name,slug')
+            ->from('poems')
+            ->leftJoin('authors', 'poems.author_id', '=', 'authors.id')
+            ->whereNotNull('poems.published_at')
+            ->where(function ($w) use ($wholeTerm, $tokens) {
+                $w->where('poems.title', 'like', $wholeTerm)->orWhere('poems.body', 'like', $wholeTerm);
+                if ($tokens !== []) {
+                    $w->orWhere(function ($w2) use ($tokens) {
+                        foreach ($tokens as $token) {
+                            $term = $this->likeTerm($token);
+                            $w2->where(function ($w3) use ($term) {
+                                $w3->where('poems.title', 'like', $term)
+                                    ->orWhere('poems.body', 'like', $term)
+                                    ->orWhere('authors.name', 'like', $term);
+                            });
+                        }
+                    });
+                }
+            })
+            ->select('poems.id', 'poems.slug', 'poems.title', 'poems.author_id');
+
+        return $this->orderPoemsByRelevance($builder, $q, $tokens, false, null);
+    }
+
+    /**
+     * Сортировка: 0 — совпали и автор и название/текст, 1 — остальные. Затем по FULLTEXT или title.
+     */
+    private function orderPoemsByRelevance(
+        \Illuminate\Database\Eloquent\Builder $builder,
+        string $q,
+        array $tokens,
+        bool $useFulltext,
+        ?string $against
+    ): \Illuminate\Database\Eloquent\Builder {
+        $conditions = [];
+        $bindings = [];
+        foreach ($tokens as $i => $t1) {
+            foreach ($tokens as $j => $t2) {
+                if ($i >= $j) {
+                    continue;
+                }
+                $term1 = $this->likeTerm($t1);
+                $term2 = $this->likeTerm($t2);
+                $conditions[] = '(authors.name LIKE ? AND (poems.title LIKE ? OR poems.body LIKE ?)) OR (authors.name LIKE ? AND (poems.title LIKE ? OR poems.body LIKE ?))';
+                $bindings = array_merge($bindings, [$term1, $term2, $term2, $term2, $term1, $term1]);
+            }
+        }
+
+        if ($conditions !== []) {
+            $caseSql = '(CASE WHEN ' . implode(' OR ', $conditions) . ' THEN 0 ELSE 1 END)';
+            $builder->orderByRaw($caseSql, $bindings);
+        }
+
+        if ($useFulltext && $against !== null) {
+            $builder->orderByRaw('MATCH(poems.title, poems.body) AGAINST(? IN BOOLEAN MODE) DESC', [$against]);
+        }
+        $builder->orderBy('poems.title');
+        return $builder;
+    }
+
+    private function searchTokens(string $q): array
+    {
+        return array_values(array_filter(preg_split('/\s+/u', trim($q)), fn ($t) => mb_strlen($t) >= 2));
+    }
+
+    private function likeTerm(string $token): string
+    {
+        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $token);
+        return '%' . $escaped . '%';
     }
 }

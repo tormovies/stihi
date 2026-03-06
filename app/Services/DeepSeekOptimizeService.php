@@ -4,8 +4,12 @@ namespace App\Services;
 
 use App\Models\DeepSeekLog;
 use App\Models\Poem;
+use App\Models\PoemAnalysis;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Http;
+use League\CommonMark\Environment\Environment;
+use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
+use League\CommonMark\MarkdownConverter;
 
 class DeepSeekOptimizeService
 {
@@ -13,6 +17,8 @@ class DeepSeekOptimizeService
     private const POEM_EXCERPT_LENGTH = 100;
     private const DEFAULT_TIMEOUT = 330;
     private const DEFAULT_BATCH_SIZE = 10;
+    private const DEFAULT_ANALYSIS_LENGTH_MIN = 600;
+    private const DEFAULT_MAX_TOKENS = 4000;
 
     /**
      * Запуск одного батча оптимизации стихов. Возвращает массив для отображения или вывода в консоль.
@@ -54,11 +60,13 @@ class DeepSeekOptimizeService
         $json = json_encode($payload, JSON_UNESCAPED_UNICODE);
         $userMessage = str_replace('{{POEMS_JSON}}', $json, $promptTemplate);
 
+        $maxTokens = (int) (Setting::get('deepseek_max_tokens') ?? self::DEFAULT_MAX_TOKENS);
         $requestBody = [
             'model' => 'deepseek-chat',
             'messages' => [['role' => 'user', 'content' => $userMessage]],
             'response_format' => ['type' => 'json_object'],
             'temperature' => 0.3,
+            'max_tokens' => $maxTokens,
         ];
         $requestBodyRaw = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
 
@@ -149,6 +157,161 @@ class DeepSeekOptimizeService
 
         $message = "Обработано стихов: {$processed}." . (count($failed) > 0 ? ' Не удалось обновить: ' . implode(', ', $failed) . '.' : '');
         return ['error' => null, 'processed' => $processed, 'failed' => $failed, 'message' => $message, 'rawResponse' => $content];
+    }
+
+    /**
+     * Один батч генерации анализов для длинных стихов (body_length >= порог). Возвращает тот же формат, что и runPoemBatch.
+     *
+     * @return array{error: string|null, processed: int, failed: int[], message: string|null, rawResponse: string|null}
+     */
+    public function runAnalysisBatch(): array
+    {
+        $apiKey = Setting::get('deepseek_api_key');
+        $timeout = (int) (Setting::get('deepseek_timeout') ?? self::DEFAULT_TIMEOUT);
+        $batchSize = (int) (Setting::get('deepseek_batch_size') ?? self::DEFAULT_BATCH_SIZE);
+        $analysisLengthMin = (int) (Setting::get('analysis_length_min') ?? self::DEFAULT_ANALYSIS_LENGTH_MIN);
+        $promptTemplate = config('deepseek.prompt_template_analysis', '');
+
+        if (!$apiKey) {
+            return ['error' => 'Не задан API-ключ DeepSeek.', 'processed' => 0, 'failed' => [], 'message' => null, 'rawResponse' => null];
+        }
+        if (trim($promptTemplate) === '') {
+            return ['error' => 'Не задан шаблон анализа в config/deepseek.php (prompt_template_analysis).', 'processed' => 0, 'failed' => [], 'message' => null, 'rawResponse' => null];
+        }
+
+        // Анализы — по одному стиху за запуск (один запрос к API)
+        $poems = Poem::with('author')
+            ->whereNotNull('published_at')
+            ->where('body_length', '>=', $analysisLengthMin)
+            ->whereDoesntHave('analysis')
+            ->orderBy('id')
+            ->limit(1)
+            ->get();
+
+        if ($poems->isEmpty()) {
+            return ['error' => null, 'processed' => 0, 'failed' => [], 'message' => 'Нет стихов для анализа (длина >= ' . $analysisLengthMin . ' знаков, без анализа).', 'rawResponse' => null];
+        }
+
+        $systemMessage = $promptTemplate;
+        $maxTokens = (int) (Setting::get('deepseek_max_tokens') ?? self::DEFAULT_MAX_TOKENS);
+        $failed = [];
+        $processed = 0;
+        $lastRequestRaw = '';
+        $lastResponseContent = '';
+
+        foreach ($poems as $poem) {
+            $userPayload = [
+                'id' => $poem->id,
+                'author' => $poem->author ? $poem->author->name : '',
+                'title' => $poem->title,
+                'first_lines' => mb_substr(preg_replace('/\s+/', ' ', strip_tags((string) $poem->body)), 0, self::POEM_EXCERPT_LENGTH),
+            ];
+            $userMessage = json_encode($userPayload, JSON_UNESCAPED_UNICODE);
+            $requestBody = [
+                'model' => 'deepseek-chat',
+                'messages' => [
+                    ['role' => 'system', 'content' => $systemMessage],
+                    ['role' => 'user', 'content' => $userMessage],
+                ],
+                'response_format' => ['type' => 'json_object'],
+                'temperature' => 0.3,
+                'max_tokens' => $maxTokens,
+            ];
+            $requestBodyRaw = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
+            $lastRequestRaw = $requestBodyRaw;
+
+            $response = Http::timeout($timeout)
+                ->withHeaders([
+                    'Authorization' => 'Bearer ' . $apiKey,
+                    'Content-Type' => 'application/json',
+                ])
+                ->withBody($requestBodyRaw, 'application/json')
+                ->post(self::DEEPSEEK_URL);
+
+            if (!$response->successful()) {
+                $failed[] = $poem->id;
+                $lastResponseContent = $response->body();
+                continue;
+            }
+
+            $body = $response->json();
+            $content = $body['choices'][0]['message']['content'] ?? '';
+            $lastResponseContent = $content;
+            $decoded = json_decode($content, true);
+
+            if (empty($decoded['success']) || empty($decoded['data'])) {
+                $failed[] = $poem->id;
+                continue;
+            }
+
+            $data = $decoded['data'];
+            $seo = isset($data['seo']) && is_array($data['seo']) ? $data['seo'] : [];
+            $getSeo = function (string $name) use ($seo): ?string {
+                foreach ($seo as $item) {
+                    if (isset($item['name']) && $item['name'] === $name && isset($item['content'])) {
+                        return trim((string) $item['content']);
+                    }
+                }
+                return null;
+            };
+            $metaTitle = $this->cleanSeoString($getSeo('meta_title') ?? '', 255);
+            $metaDesc = $this->cleanSeoString($getSeo('meta_description') ?? '', 500);
+            $h1 = $this->cleanSeoString($getSeo('h1') ?? '', 255);
+            $h1Desc = $this->cleanSeoString($data['text_by_h1'] ?? '', 500);
+            $analysisMarkdown = isset($data['analysis_markdown']) ? trim((string) $data['analysis_markdown']) : '';
+            $markdownCleaned = $analysisMarkdown !== '' ? $this->cleanSeoString($analysisMarkdown, 50000) : null;
+            if ($markdownCleaned === null) {
+                $failed[] = $poem->id;
+                continue;
+            }
+            $analysisHtml = $this->markdownToHtml($markdownCleaned);
+            if ($analysisHtml === '') {
+                $failed[] = $poem->id;
+                continue;
+            }
+
+            PoemAnalysis::create([
+                'poem_id' => $poem->id,
+                'analysis_text' => $analysisHtml,
+                'meta_title' => $metaTitle,
+                'meta_description' => $metaDesc,
+                'h1' => $h1,
+                'h1_description' => $h1Desc,
+            ]);
+            $processed++;
+        }
+
+        $payloadForLog = $poems->map(fn (Poem $p) => [
+            'id' => $p->id,
+            'author' => $p->author ? $p->author->name : '',
+            'title' => $p->title,
+            'first_lines' => mb_substr(preg_replace('/\s+/', ' ', strip_tags((string) $p->body)), 0, self::POEM_EXCERPT_LENGTH),
+        ])->values()->toArray();
+
+        DeepSeekLog::create([
+            'status' => count($failed) === $poems->count() ? 'api_error' : 'success',
+            'entity_type' => 'analysis',
+            'request_payload' => $payloadForLog,
+            'request_full' => $lastRequestRaw,
+            'response_raw' => $lastResponseContent,
+            'processed_count' => $processed,
+            'failed_ids' => $failed ?: null,
+            'error_message' => null,
+        ]);
+
+        $message = "Обработано анализов: {$processed}." . (count($failed) > 0 ? ' Не удалось: ' . implode(', ', $failed) . '.' : '');
+        return ['error' => null, 'processed' => $processed, 'failed' => $failed, 'message' => $message, 'rawResponse' => $lastResponseContent];
+    }
+
+    /**
+     * Конвертирует Markdown в HTML для сохранения в БД и вывода на странице.
+     */
+    private function markdownToHtml(string $markdown): string
+    {
+        $env = Environment::createCommonMarkEnvironment();
+        $converter = new MarkdownConverter($env);
+        $result = $converter->convert($markdown);
+        return trim($result->getContent()) ?: '';
     }
 
     public function cleanSeoString(string $value, int $maxLength): ?string

@@ -62,7 +62,7 @@ class SlugController extends Controller
             return view('author', ['author' => $author, 'poems' => $poems, 'readIds' => $readIds, 'read_debug' => $readDebug]);
         }
 
-        $poem = Poem::with('author')->where('slug', $slug)->whereNotNull('published_at')->first();
+        $poem = Poem::with(['author', 'analysis'])->where('slug', $slug)->whereNotNull('published_at')->first();
         if ($poem) {
             $likedIds = [];
             $raw = $request->cookie(PoemLikeController::COOKIE_NAME);
@@ -81,11 +81,31 @@ class SlugController extends Controller
                 'current_id' => $poem->id,
                 'is_read' => $isRead,
             ] : null;
+
+            $relatedByAuthor = Poem::with('author:id,name,slug')
+                ->where('author_id', $poem->author_id)
+                ->where('id', '!=', $poem->id)
+                ->whereNotNull('published_at')
+                ->inRandomOrder()
+                ->limit(4)
+                ->get(['id', 'slug', 'title', 'author_id']);
+
+            $excludeIds = array_merge([$poem->id], $relatedByAuthor->pluck('id')->all());
+            $relatedByLikes = Poem::with('author:id,name,slug')
+                ->where('likes', '>', 0)
+                ->whereNotIn('id', $excludeIds)
+                ->whereNotNull('published_at')
+                ->inRandomOrder()
+                ->limit(4)
+                ->get(['id', 'slug', 'title', 'author_id']);
+
             return view('poem', [
                 'poem' => $poem,
                 'liked' => in_array($poem->id, $likedIds, true),
                 'is_read' => $isRead,
                 'read_debug' => $readDebug,
+                'related_by_author' => $relatedByAuthor,
+                'related_by_likes' => $relatedByLikes,
             ]);
         }
 

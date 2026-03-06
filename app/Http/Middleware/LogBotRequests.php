@@ -30,6 +30,10 @@ class LogBotRequests
         if ($request->is('admin') || $request->is('admin/*')) {
             return $response;
         }
+        // На локалке не логируем и не дергаем БД (SiteSetting)
+        if (app()->environment('local')) {
+            return $response;
+        }
 
         try {
             $mode = SiteSetting::get('request_log_mode', 'bots');

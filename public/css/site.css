@@ -600,6 +600,11 @@ a:hover { color: var(--link-hover); }
   margin: -0.2em 0 0.85em;
   font-style: italic;
 }
+.poem .poem-analysis-link {
+  font-size: 0.9rem;
+  margin: 0.25em 0 0.85em;
+  color: var(--text-muted);
+}
 
 .poem-body,
 .page-body {
@@ -622,6 +627,25 @@ a:hover { color: var(--link-hover); }
   margin-top: 1.5rem;
   padding-top: 1rem;
   border-top: 1px solid var(--border);
+}
+
+/* Перелинковка: другие стихи автора и понравившиеся читателям */
+.poem-related {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+.poem-related-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: var(--text-muted);
+}
+.poem-related .poem-related-list {
+  margin-bottom: 1.25rem;
+}
+.poem-related .poem-related-list:last-child {
+  margin-bottom: 0;
 }
 .poem-btn {
   display: inline-flex;
@@ -1190,6 +1214,12 @@ body.admin {
   padding: 0.35rem 0;
 }
 .admin-btn-link:hover { text-decoration: underline; }
+.admin-btn-link.admin-btn-danger { color: #b91c1c; }
+.admin-btn-link.admin-btn-danger:hover { color: #991b1b; text-decoration: underline; }
+.theme-dark .admin-btn-link.admin-btn-danger { color: #f87171; }
+.admin-message { margin-bottom: 1rem; padding: 0.5rem 0.75rem; background: var(--border); border-radius: 6px; }
+.admin-card-footer { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.admin-col-checkbox { width: 2.5rem; text-align: center; vertical-align: middle; }
 
 /* Tables */
 .admin-table-wrap {
@@ -1336,6 +1366,44 @@ body.admin {
   border-top: 1px solid var(--border);
 }
 .admin-form-actions .admin-btn { margin-right: 0; }
+
+/* DeepSeek compact settings — плитка 2 в ряд на ПК, 1 на узких */
+.admin-card .admin-form.admin-form--compact .admin-form-row--compact {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem 1.5rem;
+  align-items: end;
+}
+@media (min-width: 640px) {
+  .admin-card .admin-form.admin-form--compact .admin-form-row--compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .admin-card .admin-form.admin-form--compact .admin-form-actions--inline {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+.admin-card .admin-form.admin-form--compact .admin-form-group--inline {
+  margin-bottom: 0;
+  min-width: 0;
+}
+.admin-card .admin-form.admin-form--compact .admin-form-group--inline label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.admin-card .admin-form.admin-form--compact .admin-form-group--inline input[type="number"],
+.admin-card .admin-form.admin-form--compact .admin-form-group--inline input[type="password"] {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.admin-card .admin-form.admin-form--compact .admin-form-actions--inline {
+  margin-top: 0.25rem;
+  padding-top: 0;
+  border-top: none;
+}
 
 .admin input[type="text"],
 .admin input[type="email"],

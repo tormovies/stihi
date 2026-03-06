@@ -31,7 +31,7 @@
                     <tr>
                         <td>{{ $log->id }}</td>
                         <td>{{ $log->created_at?->format('d.m.Y H:i:s') }}</td>
-                        <td>{{ ($log->entity_type ?? 'poem') === 'author' ? 'авторы' : 'стихи' }}</td>
+                        <td>@if(($log->entity_type ?? 'poem') === 'author')авторы@elseif(($log->entity_type ?? '') === 'analysis')анализы@elseстихи@endif</td>
                         <td>
                             @if($log->status === 'success')
                                 <span class="admin-log-status admin-log-status--success">успех</span>
@@ -54,11 +54,14 @@
                     @if(isset($log->updated_poems) && $log->updated_poems->isNotEmpty())
                         <tr class="admin-log-detail-row">
                             <td colspan="6">
-                                <strong>Обновлённые страницы (стихи):</strong>
+                                <strong>Обновлённые страницы {{ !empty($log->is_analysis) ? '(анализы)' : '(стихи)' }}:</strong>
                                 <ul class="admin-log-links">
                                     @foreach($log->updated_poems as $poem)
                                         <li>
                                             <a href="{{ url('/' . $poem->slug . '/') }}" target="_blank" rel="noopener">Стих: {{ e($poem->title) }}</a>
+                                            @if(!empty($log->is_analysis))
+                                                — <a href="{{ url('/' . $poem->slug . '/analiz/') }}" target="_blank" rel="noopener">Анализ</a>
+                                            @endif
                                             @if($poem->author)
                                                 — <a href="{{ url('/' . $poem->author->slug . '/') }}" target="_blank" rel="noopener">автор: {{ e($poem->author->name) }}</a>
                                             @endif
