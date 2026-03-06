@@ -179,78 +179,114 @@ class DeepSeekOptimizeService
             return ['error' => 'Не задан шаблон анализа в config/deepseek.php (prompt_template_analysis).', 'processed' => 0, 'failed' => [], 'message' => null, 'rawResponse' => null];
         }
 
-        // Анализы — по одному стиху за запуск (один запрос к API)
+        // Анализы — до двух стихов за запуск, один запрос к API (массив стихов → массив анализов в ответе).
+        // inRandomOrder() чтобы охватывать разных авторов, а не только с минимальными id.
         $poems = Poem::with('author')
             ->whereNotNull('published_at')
             ->where('body_length', '>=', $analysisLengthMin)
             ->whereDoesntHave('analysis')
-            ->orderBy('id')
-            ->limit(1)
+            ->inRandomOrder()
+            ->limit(2)
             ->get();
 
         if ($poems->isEmpty()) {
             return ['error' => null, 'processed' => 0, 'failed' => [], 'message' => 'Нет стихов для анализа (длина >= ' . $analysisLengthMin . ' знаков, без анализа).', 'rawResponse' => null];
         }
 
+        $userPayload = $poems->map(fn (Poem $p) => [
+            'id' => $p->id,
+            'author' => $p->author ? $p->author->name : '',
+            'title' => $p->title,
+            'first_lines' => mb_substr(preg_replace('/\s+/', ' ', strip_tags((string) $p->body)), 0, self::POEM_EXCERPT_LENGTH),
+        ])->values()->toArray();
+        $userMessage = json_encode($userPayload, JSON_UNESCAPED_UNICODE);
+
         $systemMessage = $promptTemplate;
         $maxTokens = (int) (Setting::get('deepseek_max_tokens') ?? self::DEFAULT_MAX_TOKENS);
+        $requestBody = [
+            'model' => 'deepseek-chat',
+            'messages' => [
+                ['role' => 'system', 'content' => $systemMessage],
+                ['role' => 'user', 'content' => $userMessage],
+            ],
+            'response_format' => ['type' => 'json_object'],
+            'temperature' => 0.3,
+            'max_tokens' => $maxTokens,
+        ];
+        $requestBodyRaw = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
+
+        $response = Http::timeout($timeout)
+            ->withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Content-Type' => 'application/json',
+            ])
+            ->withBody($requestBodyRaw, 'application/json')
+            ->post(self::DEEPSEEK_URL);
+
         $failed = [];
         $processed = 0;
-        $lastRequestRaw = '';
         $lastResponseContent = '';
 
-        foreach ($poems as $poem) {
-            $userPayload = [
-                'id' => $poem->id,
-                'author' => $poem->author ? $poem->author->name : '',
-                'title' => $poem->title,
-                'first_lines' => mb_substr(preg_replace('/\s+/', ' ', strip_tags((string) $poem->body)), 0, self::POEM_EXCERPT_LENGTH),
-            ];
-            $userMessage = json_encode($userPayload, JSON_UNESCAPED_UNICODE);
-            $requestBody = [
-                'model' => 'deepseek-chat',
-                'messages' => [
-                    ['role' => 'system', 'content' => $systemMessage],
-                    ['role' => 'user', 'content' => $userMessage],
-                ],
-                'response_format' => ['type' => 'json_object'],
-                'temperature' => 0.3,
-                'max_tokens' => $maxTokens,
-            ];
-            $requestBodyRaw = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
-            $lastRequestRaw = $requestBodyRaw;
+        if (!$response->successful()) {
+            $failed = $poems->pluck('id')->all();
+            $lastResponseContent = $response->body();
+            DeepSeekLog::create([
+                'status' => 'api_error',
+                'entity_type' => 'analysis',
+                'request_payload' => $userPayload,
+                'request_full' => $requestBodyRaw,
+                'response_raw' => $lastResponseContent,
+                'processed_count' => 0,
+                'failed_ids' => $failed,
+                'error_message' => 'HTTP ' . $response->status(),
+            ]);
+            return ['error' => 'Ошибка API: ' . $response->status(), 'processed' => 0, 'failed' => $failed, 'message' => null, 'rawResponse' => $lastResponseContent];
+        }
 
-            $response = Http::timeout($timeout)
-                ->withHeaders([
-                    'Authorization' => 'Bearer ' . $apiKey,
-                    'Content-Type' => 'application/json',
-                ])
-                ->withBody($requestBodyRaw, 'application/json')
-                ->post(self::DEEPSEEK_URL);
+        $body = $response->json();
+        $content = $body['choices'][0]['message']['content'] ?? '';
+        $lastResponseContent = $content;
+        $content = $this->extractJsonFromContent($content);
+        $decoded = is_string($content) ? json_decode($content, true) : null;
 
-            if (!$response->successful()) {
-                $failed[] = $poem->id;
-                $lastResponseContent = $response->body();
+        if (empty($decoded['success'])) {
+            $failed = $poems->pluck('id')->all();
+            DeepSeekLog::create([
+                'status' => 'parse_error',
+                'entity_type' => 'analysis',
+                'request_payload' => $userPayload,
+                'request_full' => $requestBodyRaw,
+                'response_raw' => $lastResponseContent,
+                'processed_count' => 0,
+                'failed_ids' => $failed,
+                'error_message' => 'Ответ без success: true или без items',
+            ]);
+            return ['error' => 'Ответ не содержит success: true или items.', 'processed' => 0, 'failed' => $failed, 'message' => null, 'rawResponse' => $lastResponseContent];
+        }
+
+        // Ответ: items[] с poem_id и data (или один data для обратной совместимости)
+        $items = [];
+        if (isset($decoded['items']) && is_array($decoded['items'])) {
+            $items = $decoded['items'];
+        } elseif (isset($decoded['data']) && is_array($decoded['data']) && isset($decoded['data']['analysis_markdown'])) {
+            $firstPoem = $poems->first();
+            $items = [['poem_id' => $firstPoem->id, 'data' => $decoded['data']]];
+        }
+
+        $poemsById = $poems->keyBy('id');
+        foreach ($items as $item) {
+            $poemId = (int) ($item['poem_id'] ?? $item['id'] ?? 0);
+            $data = $item['data'] ?? $item;
+            $poem = $poemsById->get($poemId);
+            if (!$poem) {
+                $failed[] = $poemId;
                 continue;
             }
-
-            $body = $response->json();
-            $content = $body['choices'][0]['message']['content'] ?? '';
-            $lastResponseContent = $content;
-            $content = $this->extractJsonFromContent($content);
-            $decoded = is_string($content) ? json_decode($content, true) : null;
-
-            if (empty($decoded['success']) || empty($decoded['data'])) {
-                $failed[] = $poem->id;
-                continue;
-            }
-
-            $data = $decoded['data'];
             $seo = isset($data['seo']) && is_array($data['seo']) ? $data['seo'] : [];
             $getSeo = function (string $name) use ($seo): ?string {
-                foreach ($seo as $item) {
-                    if (isset($item['name']) && $item['name'] === $name && isset($item['content'])) {
-                        return trim((string) $item['content']);
+                foreach ($seo as $entry) {
+                    if (isset($entry['name']) && $entry['name'] === $name && isset($entry['content'])) {
+                        return trim((string) $entry['content']);
                     }
                 }
                 return null;
@@ -274,7 +310,6 @@ class DeepSeekOptimizeService
                 $failed[] = $poem->id;
                 continue;
             }
-
             PoemAnalysis::create([
                 'poem_id' => $poem->id,
                 'analysis_text' => $analysisHtml,
@@ -285,6 +320,10 @@ class DeepSeekOptimizeService
             ]);
             $processed++;
         }
+
+        $respondedPoemIds = collect($items)->map(fn ($item) => (int) ($item['poem_id'] ?? $item['id'] ?? 0))->filter()->all();
+        $missingInResponse = $poems->pluck('id')->diff($respondedPoemIds)->all();
+        $failed = array_values(array_unique(array_merge($failed, $missingInResponse)));
 
         $payloadForLog = $poems->map(fn (Poem $p) => [
             'id' => $p->id,
@@ -297,7 +336,7 @@ class DeepSeekOptimizeService
             'status' => count($failed) === $poems->count() ? 'api_error' : 'success',
             'entity_type' => 'analysis',
             'request_payload' => $payloadForLog,
-            'request_full' => $lastRequestRaw,
+            'request_full' => $requestBodyRaw,
             'response_raw' => $lastResponseContent,
             'processed_count' => $processed,
             'failed_ids' => $failed ?: null,
