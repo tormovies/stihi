@@ -237,7 +237,8 @@ class DeepSeekOptimizeService
             $body = $response->json();
             $content = $body['choices'][0]['message']['content'] ?? '';
             $lastResponseContent = $content;
-            $decoded = json_decode($content, true);
+            $content = $this->extractJsonFromContent($content);
+            $decoded = is_string($content) ? json_decode($content, true) : null;
 
             if (empty($decoded['success']) || empty($decoded['data'])) {
                 $failed[] = $poem->id;
@@ -259,6 +260,10 @@ class DeepSeekOptimizeService
             $h1 = $this->cleanSeoString($getSeo('h1') ?? '', 255);
             $h1Desc = $this->cleanSeoString($data['text_by_h1'] ?? '', 500);
             $analysisMarkdown = isset($data['analysis_markdown']) ? trim((string) $data['analysis_markdown']) : '';
+            if ($this->isAnalysisMarkdownRequestEcho($analysisMarkdown)) {
+                $failed[] = $poem->id;
+                continue;
+            }
             $markdownCleaned = $analysisMarkdown !== '' ? $this->cleanSeoString($analysisMarkdown, 50000) : null;
             if ($markdownCleaned === null) {
                 $failed[] = $poem->id;
@@ -301,6 +306,43 @@ class DeepSeekOptimizeService
 
         $message = "Обработано анализов: {$processed}." . (count($failed) > 0 ? ' Не удалось: ' . implode(', ', $failed) . '.' : '');
         return ['error' => null, 'processed' => $processed, 'failed' => $failed, 'message' => $message, 'rawResponse' => $lastResponseContent];
+    }
+
+    /**
+     * Извлекает JSON из ответа: если обёрнут в ```json ... ``` или ``` ... ``` — убирает обёртку.
+     */
+    private function extractJsonFromContent(string $content): string
+    {
+        $content = trim($content);
+        if (preg_match('/^```(?:json)?\s*\n?(.*?)\n?```\s*$/s', $content, $m)) {
+            return trim($m[1]);
+        }
+        return $content;
+    }
+
+    /**
+     * Проверяет, не вернула ли модель в analysis_markdown сам запрос (system/user) — такие ответы не сохраняем.
+     */
+    private function isAnalysisMarkdownRequestEcho(string $text): bool
+    {
+        if ($text === '') {
+            return true;
+        }
+        $lower = mb_strtolower($text);
+        $signatures = [
+            '"role":"system"',
+            '"role": "system"',
+            '"model":"deepseek-chat"',
+            '"model": "deepseek-chat"',
+            '"messages":',
+            '"messages": [',
+        ];
+        foreach ($signatures as $sig) {
+            if (str_contains($lower, $sig)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
