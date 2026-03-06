@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Author;
 use App\Models\Page;
 use App\Models\Poem;
+use App\Models\PoemAnalysis;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
@@ -160,6 +161,22 @@ class SitemapController extends Controller
                 'changefreq' => 'monthly',
                 'priority' => '0.6',
             ];
+        }
+
+        foreach (PoemAnalysis::with('poem:id,slug,published_at')
+            ->whereHas('poem', fn ($q) => $q->whereNotNull('published_at'))
+            ->orderBy('updated_at', 'desc')
+            ->select('id', 'poem_id', 'updated_at')
+            ->cursor() as $analysis) {
+            $poem = $analysis->poem;
+            if ($poem && $poem->slug) {
+                $entries[] = [
+                    'loc' => url($poem->slug . '/analiz'),
+                    'lastmod' => $analysis->updated_at?->toW3cString(),
+                    'changefreq' => 'monthly',
+                    'priority' => '0.5',
+                ];
+            }
         }
 
         foreach (Page::where('is_published', true)->where('is_home', false)->select('slug')->cursor() as $page) {
