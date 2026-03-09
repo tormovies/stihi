@@ -7,10 +7,12 @@ use App\Http\Controllers\Admin\PageController as AdminPageController;
 use App\Http\Controllers\Admin\PoemController as AdminPoemController;
 use App\Http\Controllers\Admin\SecurityController as AdminSecurityController;
 use App\Http\Controllers\Admin\DeepSeekController as AdminDeepSeekController;
+use App\Http\Controllers\Admin\PoemAnalysisController as AdminPoemAnalysisController;
 use App\Http\Controllers\Admin\SeoController as AdminSeoController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PoemLikeController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\PoemAnalysisController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SlugController;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +41,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('authors', AdminAuthorController::class)->except('show');
     Route::resource('poems', AdminPoemController::class)->except('show');
+    Route::get('poem-analyses', [AdminPoemAnalysisController::class, 'index'])->name('poem-analyses.index');
+    Route::post('poem-analyses/destroy', [AdminPoemAnalysisController::class, 'destroy'])->name('poem-analyses.destroy');
     Route::resource('pages', AdminPageController::class)->except('show');
     Route::get('security', [AdminSecurityController::class, 'index'])->name('security.index');
     Route::post('security', [AdminSecurityController::class, 'index'])->name('security.update');
@@ -49,6 +53,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::post('deepseek/wipe/authors', [AdminDeepSeekController::class, 'wipeAuthors'])->name('deepseek.wipe.authors');
     Route::get('deepseek/run', [AdminDeepSeekController::class, 'run'])->name('deepseek.run');
     Route::get('deepseek/run/authors', [AdminDeepSeekController::class, 'runAuthors'])->name('deepseek.run.authors');
+    Route::get('deepseek/run/analyses', [AdminDeepSeekController::class, 'runAnalyses'])->name('deepseek.run.analyses');
     Route::get('deepseek/log', [AdminDeepSeekController::class, 'log'])->name('deepseek.log');
     Route::post('seo/templates', [AdminSeoController::class, 'updateTemplates'])->name('seo.templates.update');
     Route::post('seo/pages', [AdminSeoController::class, 'storeSeoPage'])->name('seo.pages.store');
@@ -58,4 +63,5 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::post('seo/counters', [AdminSeoController::class, 'updateCounters'])->name('seo.counters.update');
 });
 
+Route::get('/{slug}/analiz', [PoemAnalysisController::class, 'show'])->name('poem.analysis');
 Route::get('/{slug}', [SlugController::class, 'show'])->name('slug');

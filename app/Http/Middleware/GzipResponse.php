@@ -15,6 +15,10 @@ class GzipResponse
         if (!function_exists('gzencode')) {
             return $response;
         }
+        // На локалке не сжимаем — быстрее отдача и меньше нагрузка
+        if (app()->environment('local')) {
+            return $response;
+        }
 
         $acceptEncoding = $request->header('Accept-Encoding', '');
         if (!str_contains($acceptEncoding, 'gzip')) {

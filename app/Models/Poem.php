@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Poem extends Model
 {
@@ -23,5 +24,10 @@ class Poem extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(Author::class);
+    }
+
+    public function analysis(): HasOne
+    {
+        return $this->hasOne(PoemAnalysis::class);
     }
 }

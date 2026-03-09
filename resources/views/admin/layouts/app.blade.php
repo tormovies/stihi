@@ -17,6 +17,7 @@
             <nav>
             <a href="{{ route('admin.authors.index') }}">Авторы</a>
             <a href="{{ route('admin.poems.index') }}">Стихи</a>
+            <a href="{{ route('admin.poem-analyses.index') }}">Анализы</a>
             <a href="{{ route('admin.pages.index') }}">Страницы</a>
             <a href="{{ route('admin.seo.index') }}">SEO</a>
             <a href="{{ route('admin.deepseek.index') }}">DeepSeek</a>

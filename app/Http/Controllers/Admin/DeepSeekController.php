@@ -19,25 +19,36 @@ class DeepSeekController extends Controller
     private const POEM_EXCERPT_LENGTH = 100;
     private const DEFAULT_TIMEOUT = 330;
     private const DEFAULT_BATCH_SIZE = 10;
+    private const DEFAULT_ANALYSIS_LENGTH_MIN = 600;
+    private const DEFAULT_MAX_TOKENS = 4000;
 
     public function index(): View
     {
         $apiKey = Setting::get('deepseek_api_key');
         $timeout = (int) (Setting::get('deepseek_timeout') ?? self::DEFAULT_TIMEOUT);
         $batchSize = (int) (Setting::get('deepseek_batch_size') ?? self::DEFAULT_BATCH_SIZE);
+        $analysisLengthMin = (int) (Setting::get('analysis_length_min') ?? self::DEFAULT_ANALYSIS_LENGTH_MIN);
+        $maxTokens = (int) (Setting::get('deepseek_max_tokens') ?? self::DEFAULT_MAX_TOKENS);
 
         $unprocessedPoems = Poem::whereNotNull('published_at')
             ->where(fn ($q) => $q->whereNull('meta_title')->orWhere('meta_title', '') )
             ->count();
         $unprocessedAuthors = Author::where(fn ($q) => $q->whereNull('meta_title')->orWhere('meta_title', ''))
             ->count();
+        $unprocessedAnalyses = Poem::whereNotNull('published_at')
+            ->where('body_length', '>=', $analysisLengthMin)
+            ->whereDoesntHave('analysis')
+            ->count();
 
         return view('admin.deepseek.index', [
             'apiKeySet' => $apiKey !== null && $apiKey !== '',
             'timeout' => $timeout,
             'batchSize' => $batchSize,
+            'analysisLengthMin' => $analysisLengthMin,
+            'maxTokens' => $maxTokens,
             'unprocessedPoems' => $unprocessedPoems,
             'unprocessedAuthors' => $unprocessedAuthors,
+            'unprocessedAnalyses' => $unprocessedAnalyses,
         ]);
     }
 
@@ -46,6 +57,8 @@ class DeepSeekController extends Controller
         $request->validate([
             'timeout' => 'nullable|integer|min:60|max:600',
             'batch_size' => 'nullable|integer|min:1|max:50',
+            'analysis_length_min' => 'nullable|integer|min:100|max:5000',
+            'max_tokens' => 'nullable|integer|min:500|max:32000',
         ]);
 
         if ($request->filled('timeout')) {
@@ -53,6 +66,12 @@ class DeepSeekController extends Controller
         }
         if ($request->filled('batch_size')) {
             Setting::set('deepseek_batch_size', (string) $request->batch_size);
+        }
+        if ($request->filled('analysis_length_min')) {
+            Setting::set('analysis_length_min', (string) $request->analysis_length_min);
+        }
+        if ($request->filled('max_tokens')) {
+            Setting::set('deepseek_max_tokens', (string) $request->max_tokens);
         }
         if ($request->filled('api_key')) {
             Setting::set('deepseek_api_key', $request->api_key);
@@ -150,11 +169,13 @@ class DeepSeekController extends Controller
         $json = json_encode($payload, JSON_UNESCAPED_UNICODE);
         $userMessage = str_replace('{{AUTHORS_JSON}}', $json, $promptTemplate);
 
+        $maxTokens = (int) (Setting::get('deepseek_max_tokens') ?? self::DEFAULT_MAX_TOKENS);
         $requestBody = [
             'model' => 'deepseek-chat',
             'messages' => [['role' => 'user', 'content' => $userMessage]],
             'response_format' => ['type' => 'json_object'],
             'temperature' => 0.3,
+            'max_tokens' => $maxTokens,
         ];
         $requestBodyRaw = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
 
@@ -265,6 +286,20 @@ class DeepSeekController extends Controller
         ]);
     }
 
+    public function runAnalyses(DeepSeekOptimizeService $service): View
+    {
+        set_time_limit(600);
+        $result = $service->runAnalysisBatch();
+        return view('admin.deepseek.run', [
+            'error' => $result['error'],
+            'processed' => $result['processed'],
+            'failed' => $result['failed'],
+            'entity_label' => 'анализов',
+            'message' => $result['message'],
+            'rawResponse' => $result['rawResponse'],
+        ]);
+    }
+
     /**
      * Декодирует HTML-сущности и обрезает строку для SEO-полей (в БД храним обычный текст).
      * Убирает &#039;, &apos;, &quot;, двойное кодирование и т.п.
@@ -309,6 +344,7 @@ class DeepSeekController extends Controller
                     : collect();
                 $log->updated_authors = collect();
             }
+            $log->is_analysis = $entityType === 'analysis';
         }
         return view('admin.deepseek.log', compact('logs'));
     }

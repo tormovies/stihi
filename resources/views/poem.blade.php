@@ -33,9 +33,9 @@
             $h1Desc = \App\Models\SeoTemplate::renderH1Description('poem', $poem);
             $h1Desc = str_replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $h1Desc);
         @endphp
-        <p class="author-name">{!! $h1Desc !!}</p>
+        <p class="author-name">{!! $h1Desc !!}@if($poem->relationLoaded('analysis') && $poem->analysis) — <a href="/{{ $poem->slug }}/analiz/">Анализ стихотворения «{{ e_decode($poem->title) }}»</a>@endif</p>
     @else
-        <p class="author-name">{{ e_decode($poem->author->name) }}</p>
+        <p class="author-name">{{ e_decode($poem->author->name) }}@if($poem->relationLoaded('analysis') && $poem->analysis) — <a href="/{{ $poem->slug }}/analiz/">Анализ стихотворения «{{ e_decode($poem->title) }}»</a>@endif</p>
     @endif
     <div class="poem-body">
         {!! \Illuminate\Support\Str::replace(['https://stihotvorenie.su', 'http://stihotvorenie.su'], '', $poem->body ?? '') !!}
@@ -49,6 +49,28 @@
         <button type="button" class="poem-btn poem-btn-read {{ ($is_read ?? false) ? 'is-read' : '' }}" id="poem-btn-read" data-poem-id="{{ $poem->id }}" aria-label="{{ ($is_read ?? false) ? 'Прочитано' : 'Отметить прочитанным' }}" {{ ($is_read ?? false) ? 'disabled' : '' }}>{{ ($is_read ?? false) ? 'Прочитано ✓' : 'Прочитано' }}</button>
         <a href="#top" class="poem-btn back-to-top back-to-top-inline" aria-label="Наверх">Наверх</a>
     </div>
+
+    @if(($related_by_author ?? collect())->isNotEmpty() || ($related_by_likes ?? collect())->isNotEmpty())
+    <section class="poem-related" aria-label="Перелинковка">
+        @if(($related_by_author ?? collect())->isNotEmpty())
+        <h2 class="poem-related-title">Другие стихи {{ e_decode($poem->author->name) }}</h2>
+        <ul class="poems-list poem-related-list">
+            @foreach($related_by_author as $p)
+            <li><a href="/{{ $p->slug }}/" class="list-row-link">{{ e_decode($p->title) }}@if($p->author)<span class="list-row-meta"> — {{ e_decode($p->author->name) }}</span>@endif</a></li>
+            @endforeach
+        </ul>
+        @endif
+        @if(($related_by_likes ?? collect())->isNotEmpty())
+        <h2 class="poem-related-title">Понравилось читателям</h2>
+        <ul class="poems-list poem-related-list">
+            @foreach($related_by_likes as $p)
+            <li><a href="/{{ $p->slug }}/" class="list-row-link">{{ e_decode($p->title) }}@if($p->author)<span class="list-row-meta"> — {{ e_decode($p->author->name) }}</span>@endif</a></li>
+            @endforeach
+        </ul>
+        @endif
+    </section>
+    @endif
+
     @if(!empty($read_debug))
     <div class="read-debug" style="margin-top:1.5rem;padding:1rem;background:#f0f0f0;border:1px solid #ccc;font-family:monospace;font-size:12px;word-break:break-all;">
         <strong>Отладка «Прочитано» (добавь ?debug в URL)</strong><br>
