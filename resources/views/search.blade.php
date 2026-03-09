@@ -10,7 +10,7 @@
 
     @if(mb_strlen($q) < 3)
         <p class="search-empty">Введите не менее 3 символов для поиска.</p>
-    @elseif($authors->isEmpty() && $poems->isEmpty())
+    @elseif($authors->isEmpty() && $poems->isEmpty() && $analyses->isEmpty())
         <p class="search-empty">Ничего не найдено.</p>
     @else
         @if($authors->isNotEmpty())
@@ -24,16 +24,58 @@
             </section>
         @endif
 
-        @if($poems->isNotEmpty())
-            <section class="search-section">
-                <h2 class="search-section-title">Стихи</h2>
-                <ul class="poems-list">
-                    @foreach($poems as $poem)
-                        <li><a href="/{{ $poem->slug }}/" class="list-row-link">{{ e_decode($poem->title) }}@if($poem->author) — <span class="list-row-meta">{{ e_decode($poem->author->name) }}</span>@endif</a></li>
-                    @endforeach
-                </ul>
-                <div class="pagination-wrap">{{ $poems->links() }}</div>
-            </section>
+        @if(!empty($showAnalysesFirst))
+            {{-- В запросе есть «анализ» — сначала анализы, потом стихи --}}
+            @if(isset($analyses) && $analyses->isNotEmpty())
+                <section class="search-section">
+                    <h2 class="search-section-title">Анализы</h2>
+                    <ul class="poems-list">
+                        @foreach($analyses as $analysis)
+                            @php $poem = $analysis->poem; $label = trim((string) ($analysis->h1 ?? '')) !== '' ? $analysis->h1 : ($poem?->title ?? ''); @endphp
+                            @if($poem)
+                            <li><a href="/{{ $poem->slug }}/analiz" class="list-row-link">{{ e_decode($label) }}</a></li>
+                            @endif
+                        @endforeach
+                    </ul>
+                </section>
+            @endif
+            @if($poems->isNotEmpty())
+                <section class="search-section">
+                    <h2 class="search-section-title">Стихи</h2>
+                    <ul class="poems-list">
+                        @foreach($poems as $poem)
+                            <li><a href="/{{ $poem->slug }}/" class="list-row-link">{{ e_decode($poem->title) }}@if($poem->author) — <span class="list-row-meta">{{ e_decode($poem->author->name) }}</span>@endif</a></li>
+                        @endforeach
+                    </ul>
+                    <div class="pagination-wrap">{{ $poems->links() }}</div>
+                </section>
+            @endif
+        @else
+            {{-- В запросе нет «анализ» — сначала стихи, потом анализы --}}
+            @if($poems->isNotEmpty())
+                <section class="search-section">
+                    <h2 class="search-section-title">Стихи</h2>
+                    <ul class="poems-list">
+                        @foreach($poems as $poem)
+                            <li><a href="/{{ $poem->slug }}/" class="list-row-link">{{ e_decode($poem->title) }}@if($poem->author) — <span class="list-row-meta">{{ e_decode($poem->author->name) }}</span>@endif</a></li>
+                        @endforeach
+                    </ul>
+                    <div class="pagination-wrap">{{ $poems->links() }}</div>
+                </section>
+            @endif
+            @if(isset($analyses) && $analyses->isNotEmpty())
+                <section class="search-section">
+                    <h2 class="search-section-title">Анализы</h2>
+                    <ul class="poems-list">
+                        @foreach($analyses as $analysis)
+                            @php $poem = $analysis->poem; $label = trim((string) ($analysis->h1 ?? '')) !== '' ? $analysis->h1 : ($poem?->title ?? ''); @endphp
+                            @if($poem)
+                            <li><a href="/{{ $poem->slug }}/analiz" class="list-row-link">{{ e_decode($label) }}</a></li>
+                            @endif
+                        @endforeach
+                    </ul>
+                </section>
+            @endif
         @endif
     @endif
 </div>

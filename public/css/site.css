@@ -578,6 +578,65 @@ a:hover { color: var(--link-hover); }
   padding: 0.4em 0;
 }
 
+/* Блок «Анализы произведений» на главной — плитка в две колонки */
+.home-analyses {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+.home-analyses__title {
+  font-size: 1.15rem;
+  margin: 0 0 1rem;
+  color: var(--text);
+}
+.home-analyses-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+@media (min-width: 480px) {
+  .home-analyses-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.home-analysis-card {
+  margin: 0;
+}
+.home-analysis-card__link {
+  display: block;
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.home-analysis-card__link:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px var(--shadow);
+  color: var(--link-hover);
+}
+.home-analysis-card__author {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25em;
+}
+.home-analysis-card__title {
+  font-weight: 600;
+  font-size: 1rem;
+}
+.home-analysis-card__excerpt {
+  margin: 0.5em 0 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
 /* Таблица из контента WordPress на главной — на мобильных скролл */
 .page-body--front {
   overflow-x: auto;
@@ -599,6 +658,11 @@ a:hover { color: var(--link-hover); }
   color: var(--text-muted);
   margin: -0.2em 0 0.85em;
   font-style: italic;
+}
+.poem .poem-analysis-link {
+  font-size: 0.9rem;
+  margin: 0.25em 0 0.85em;
+  color: var(--text-muted);
 }
 
 .poem-body,
@@ -622,6 +686,25 @@ a:hover { color: var(--link-hover); }
   margin-top: 1.5rem;
   padding-top: 1rem;
   border-top: 1px solid var(--border);
+}
+
+/* Перелинковка: другие стихи автора и понравившиеся читателям */
+.poem-related {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+.poem-related-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: var(--text-muted);
+}
+.poem-related .poem-related-list {
+  margin-bottom: 1.25rem;
+}
+.poem-related .poem-related-list:last-child {
+  margin-bottom: 0;
 }
 .poem-btn {
   display: inline-flex;
@@ -1190,6 +1273,12 @@ body.admin {
   padding: 0.35rem 0;
 }
 .admin-btn-link:hover { text-decoration: underline; }
+.admin-btn-link.admin-btn-danger { color: #b91c1c; }
+.admin-btn-link.admin-btn-danger:hover { color: #991b1b; text-decoration: underline; }
+.theme-dark .admin-btn-link.admin-btn-danger { color: #f87171; }
+.admin-message { margin-bottom: 1rem; padding: 0.5rem 0.75rem; background: var(--border); border-radius: 6px; }
+.admin-card-footer { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.admin-col-checkbox { width: 2.5rem; text-align: center; vertical-align: middle; }
 
 /* Tables */
 .admin-table-wrap {
@@ -1337,6 +1426,44 @@ body.admin {
 }
 .admin-form-actions .admin-btn { margin-right: 0; }
 
+/* DeepSeek compact settings — плитка 2 в ряд на ПК, 1 на узких */
+.admin-card .admin-form.admin-form--compact .admin-form-row--compact {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem 1.5rem;
+  align-items: end;
+}
+@media (min-width: 640px) {
+  .admin-card .admin-form.admin-form--compact .admin-form-row--compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .admin-card .admin-form.admin-form--compact .admin-form-actions--inline {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+.admin-card .admin-form.admin-form--compact .admin-form-group--inline {
+  margin-bottom: 0;
+  min-width: 0;
+}
+.admin-card .admin-form.admin-form--compact .admin-form-group--inline label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.admin-card .admin-form.admin-form--compact .admin-form-group--inline input[type="number"],
+.admin-card .admin-form.admin-form--compact .admin-form-group--inline input[type="password"] {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.admin-card .admin-form.admin-form--compact .admin-form-actions--inline {
+  margin-top: 0.25rem;
+  padding-top: 0;
+  border-top: none;
+}
+
 .admin input[type="text"],
 .admin input[type="email"],
 .admin input[type="password"],
@@ -1468,7 +1595,8 @@ body.admin {
   border-radius: 8px;
   border: 1px solid var(--border);
 }
-.admin-filter-bar input[type="text"] { min-width: 200px; }
+.admin-filter-bar input[type="text"],
+.admin-filter-bar input[type="search"] { min-width: 200px; }
 .admin-filter-bar select { min-width: 160px; }
 .admin-filter-bar .admin-filter-label { margin-right: 0.25rem; white-space: nowrap; }
 .admin-filter-bar .admin-filter-number { width: 5rem; min-width: 5rem; }

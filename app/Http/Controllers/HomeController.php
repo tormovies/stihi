@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Author;
 use App\Models\Page;
+use App\Models\PoemAnalysis;
 use App\Models\SeoTemplate;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
@@ -25,6 +26,12 @@ class HomeController extends Controller
                 'seoHome' => $seoHome,
             ];
         });
+
+        $data['randomAnalyses'] = PoemAnalysis::with('poem.author')
+            ->whereHas('poem', fn ($q) => $q->whereNotNull('published_at'))
+            ->inRandomOrder()
+            ->limit(6)
+            ->get();
 
         return view('home', $data);
     }

@@ -49,7 +49,7 @@
             <a href="/" class="site-logo">Стихотворения поэтов классиков</a>
             <div class="site-header-tools">
                 <div class="site-search-wrap">
-                    <input type="search" class="site-search-input" id="site-search-input" placeholder="Поиск по стихам и авторам…" autocomplete="off" aria-label="Поиск по стихам и авторам" minlength="3">
+                    <input type="search" class="site-search-input" id="site-search-input" placeholder="Поиск по стихам, авторам и анализам…" autocomplete="off" aria-label="Поиск по стихам, авторам и анализам" minlength="3">
                     <div class="site-search-dropdown" id="site-search-dropdown" role="listbox" aria-hidden="true"></div>
                 </div>
                 <div class="site-burger-wrap">

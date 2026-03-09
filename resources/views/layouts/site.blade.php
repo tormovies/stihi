@@ -98,10 +98,19 @@
   }
   function render(data, query) {
     var html = [];
+    var qLower = (query && typeof query === 'string') ? query.toLowerCase() : '';
+    var showAnalysesFirst = qLower.indexOf('анализ') !== -1;
     if (data.authors && data.authors.length) {
       html.push('<div class="site-search-group"><span class="site-search-group-title">Авторы</span><ul class="site-search-list">');
       data.authors.forEach(function(a) {
         html.push('<li><a href="' + baseUrl + '/' + a.slug + '/" class="site-search-item">' + escapeHtml(a.name) + '</a></li>');
+      });
+      html.push('</ul></div>');
+    }
+    if (showAnalysesFirst && data.analyses && data.analyses.length) {
+      html.push('<div class="site-search-group"><span class="site-search-group-title">Анализы</span><ul class="site-search-list">');
+      data.analyses.forEach(function(item) {
+        html.push('<li><a href="' + baseUrl + '/' + item.slug + '/analiz" class="site-search-item">' + escapeHtml(item.title) + '</a></li>');
       });
       html.push('</ul></div>');
     }
@@ -110,6 +119,13 @@
       data.poems.forEach(function(p) {
         var sub = p.author ? ' — <span class="site-search-item-meta">' + escapeHtml(p.author) + '</span>' : '';
         html.push('<li><a href="' + baseUrl + '/' + p.slug + '/" class="site-search-item">' + escapeHtml(p.title) + sub + '</a></li>');
+      });
+      html.push('</ul></div>');
+    }
+    if (!showAnalysesFirst && data.analyses && data.analyses.length) {
+      html.push('<div class="site-search-group"><span class="site-search-group-title">Анализы</span><ul class="site-search-list">');
+      data.analyses.forEach(function(item) {
+        html.push('<li><a href="' + baseUrl + '/' + item.slug + '/analiz" class="site-search-item">' + escapeHtml(item.title) + '</a></li>');
       });
       html.push('</ul></div>');
     }
