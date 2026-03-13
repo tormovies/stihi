@@ -659,10 +659,31 @@ a:hover { color: var(--link-hover); }
   margin: -0.2em 0 0.85em;
   font-style: italic;
 }
-.poem .poem-analysis-link {
+/* Ссылка на анализ — выделена, чтобы не сливаться с автором/описанием */
+.poem .author-name .poem-analysis-link {
+  display: inline-block;
+  margin-left: 0.25em;
+  padding: 0.35em 0.75em;
   font-size: 0.9rem;
-  margin: 0.25em 0 0.85em;
-  color: var(--text-muted);
+  font-weight: 600;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.poem .author-name .poem-analysis-link:hover {
+  color: var(--bg);
+  background: var(--accent);
+}
+.theme-dark .poem .author-name .poem-analysis-link {
+  color: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+.theme-dark .poem .author-name .poem-analysis-link:hover {
+  color: var(--bg);
+  background: var(--accent-hover);
 }
 
 .poem-body,
@@ -1600,6 +1621,47 @@ body.admin {
 .admin-filter-bar select { min-width: 160px; }
 .admin-filter-bar .admin-filter-label { margin-right: 0.25rem; white-space: nowrap; }
 .admin-filter-bar .admin-filter-number { width: 5rem; min-width: 5rem; }
+
+/* Блок «Расписание (cron)» в DeepSeek — плиткой по два в ряд */
+.admin-cron-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.admin-cron-row__label {
+  grid-column: 1 / -1;
+  font-weight: 600;
+}
+.admin-cron-row__field {
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.admin-cron-row__field label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.admin-cron-row__field select {
+  width: 100%;
+  max-width: 100%;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+}
+.admin-cron-row__hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
 
 /* Admin login page */
 .theme-toggle-wrap {

@@ -44,6 +44,32 @@
                 <button type="submit" class="admin-btn admin-btn-primary">Сохранить</button>
             </div>
         </div>
+        <div class="admin-cron-row" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+            <span class="admin-cron-row__label" style="grid-column: 1 / -1; font-weight: 600;">Расписание (cron)</span>
+            <div class="admin-cron-row__field" style="padding: 1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;">
+                <label for="cron_run_poems">SEO стихов</label>
+                <select id="cron_run_poems" name="cron_run_poems">
+                    <option value="off" {{ old('cron_run_poems', $cronRunPoems ?? 'off') === 'off' ? 'selected' : '' }}>выкл</option>
+                    <option value="5" {{ old('cron_run_poems', $cronRunPoems ?? '') === '5' ? 'selected' : '' }}>каждые 5 мин</option>
+                    <option value="10" {{ old('cron_run_poems', $cronRunPoems ?? '') === '10' ? 'selected' : '' }}>каждые 10 мин</option>
+                    <option value="15" {{ old('cron_run_poems', $cronRunPoems ?? '') === '15' ? 'selected' : '' }}>каждые 15 мин</option>
+                    <option value="20" {{ old('cron_run_poems', $cronRunPoems ?? '') === '20' ? 'selected' : '' }}>каждые 20 мин</option>
+                    <option value="30" {{ old('cron_run_poems', $cronRunPoems ?? '') === '30' ? 'selected' : '' }}>каждые 30 мин</option>
+                </select>
+            </div>
+            <div class="admin-cron-row__field" style="padding: 1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;">
+                <label for="cron_run_analyses">Анализы стихов</label>
+                <select id="cron_run_analyses" name="cron_run_analyses">
+                    <option value="off" {{ old('cron_run_analyses', $cronRunAnalyses ?? '5') === 'off' ? 'selected' : '' }}>выкл</option>
+                    <option value="5" {{ old('cron_run_analyses', $cronRunAnalyses ?? '5') === '5' ? 'selected' : '' }}>каждые 5 мин</option>
+                    <option value="10" {{ old('cron_run_analyses', $cronRunAnalyses ?? '') === '10' ? 'selected' : '' }}>каждые 10 мин</option>
+                    <option value="15" {{ old('cron_run_analyses', $cronRunAnalyses ?? '') === '15' ? 'selected' : '' }}>каждые 15 мин</option>
+                    <option value="20" {{ old('cron_run_analyses', $cronRunAnalyses ?? '') === '20' ? 'selected' : '' }}>каждые 20 мин</option>
+                    <option value="30" {{ old('cron_run_analyses', $cronRunAnalyses ?? '') === '30' ? 'selected' : '' }}>каждые 30 мин</option>
+                </select>
+            </div>
+            <p class="admin-cron-row__hint" style="grid-column: 1 / -1; margin: 0; font-size: 0.9rem; color: var(--text-muted);">На сервере должен быть настроен <code>* * * * * php artisan schedule:run</code>. Расписание применяется при следующем проходе планировщика.</p>
+        </div>
     </form>
 </div>
 

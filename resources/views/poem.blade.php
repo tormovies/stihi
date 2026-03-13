@@ -33,9 +33,9 @@
             $h1Desc = \App\Models\SeoTemplate::renderH1Description('poem', $poem);
             $h1Desc = str_replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $h1Desc);
         @endphp
-        <p class="author-name">{!! $h1Desc !!}@if($poem->relationLoaded('analysis') && $poem->analysis) — <a href="/{{ $poem->slug }}/analiz/">Анализ стихотворения «{{ e_decode($poem->title) }}»</a>@endif</p>
+        <p class="author-name">{!! $h1Desc !!}@if($poem->relationLoaded('analysis') && $poem->analysis) — <a href="/{{ $poem->slug }}/analiz/" class="poem-analysis-link">Анализ стихотворения «{{ e_decode($poem->title) }}»</a>@endif</p>
     @else
-        <p class="author-name">{{ e_decode($poem->author->name) }}@if($poem->relationLoaded('analysis') && $poem->analysis) — <a href="/{{ $poem->slug }}/analiz/">Анализ стихотворения «{{ e_decode($poem->title) }}»</a>@endif</p>
+        <p class="author-name">{{ e_decode($poem->author->name) }}@if($poem->relationLoaded('analysis') && $poem->analysis) — <a href="/{{ $poem->slug }}/analiz/" class="poem-analysis-link">Анализ стихотворения «{{ e_decode($poem->title) }}»</a>@endif</p>
     @endif
     <div class="poem-body">
         {!! \Illuminate\Support\Str::replace(['https://stihotvorenie.su', 'http://stihotvorenie.su'], '', $poem->body ?? '') !!}

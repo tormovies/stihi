@@ -40,6 +40,9 @@ class DeepSeekController extends Controller
             ->whereDoesntHave('analysis')
             ->count();
 
+        $cronRunPoems = Setting::get('cron_run_poems', 'off');
+        $cronRunAnalyses = Setting::get('cron_run_analyses', '5');
+
         return view('admin.deepseek.index', [
             'apiKeySet' => $apiKey !== null && $apiKey !== '',
             'timeout' => $timeout,
@@ -49,6 +52,8 @@ class DeepSeekController extends Controller
             'unprocessedPoems' => $unprocessedPoems,
             'unprocessedAuthors' => $unprocessedAuthors,
             'unprocessedAnalyses' => $unprocessedAnalyses,
+            'cronRunPoems' => $cronRunPoems,
+            'cronRunAnalyses' => $cronRunAnalyses,
         ]);
     }
 
@@ -59,8 +64,12 @@ class DeepSeekController extends Controller
             'batch_size' => 'nullable|integer|min:1|max:50',
             'analysis_length_min' => 'nullable|integer|min:100|max:5000',
             'max_tokens' => 'nullable|integer|min:500|max:32000',
+            'cron_run_poems' => 'nullable|string|in:off,5,10,15,20,30',
+            'cron_run_analyses' => 'nullable|string|in:off,5,10,15,20,30',
         ]);
 
+        Setting::set('cron_run_poems', $request->input('cron_run_poems', 'off'));
+        Setting::set('cron_run_analyses', $request->input('cron_run_analyses', '5'));
         if ($request->filled('timeout')) {
             Setting::set('deepseek_timeout', (string) $request->timeout);
         }
