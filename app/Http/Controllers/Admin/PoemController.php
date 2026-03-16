@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Author;
 use App\Models\Poem;
+use App\Models\Tag;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -20,7 +21,10 @@ class PoemController extends Controller
             $sort = 'updated_at';
         }
 
-        $query = Poem::with('author')->orderBy($sort, $order);
+        $query = Poem::with('author')
+            ->orderBy($sort, $order)
+            ->orderBy('updated_at', 'desc')
+            ->orderBy('id', 'asc');
         if ($request->filled('author_id')) {
             $query->where('author_id', $request->author_id);
         }
@@ -70,7 +74,9 @@ class PoemController extends Controller
     public function edit(Poem $poem): View
     {
         $authors = Author::orderBy('name')->get();
-        return view('admin.poems.edit', compact('poem', 'authors'));
+        $poem->load('tags');
+        $allTags = Tag::orderBy('sort_order')->orderBy('name')->get(['id', 'name']);
+        return view('admin.poems.edit', compact('poem', 'authors', 'allTags'));
     }
 
     public function update(Request $request, Poem $poem): RedirectResponse
@@ -85,8 +91,11 @@ class PoemController extends Controller
             'h1' => 'nullable|string|max:255',
             'h1_description' => 'nullable|string|max:500',
             'published_at' => 'nullable|date',
+            'tag_ids' => 'nullable|array',
+            'tag_ids.*' => 'exists:tags,id',
         ]);
-        $poem->update($data);
+        $poem->update(collect($data)->except('tag_ids')->all());
+        $poem->tags()->sync($data['tag_ids'] ?? []);
         return redirect()->route('admin.poems.index')->with('success', 'Стих обновлён.');
     }
 

@@ -17,7 +17,7 @@
     <p class="admin-card-desc">Главная — meta и заголовки для главной (/). Остальные — для страниц, авторов и стихов без своих meta. Подстановки: <code>{title}</code>, <code>{name}</code>, <code>{author}</code>.</p>
     <form method="POST" action="{{ route('admin.seo.templates.update') }}" class="admin-form">
         @csrf
-        @foreach(['home' => 'Главная (/)', 'page' => 'Страницы', 'author' => 'Авторы', 'poem' => 'Стихи', 'favorites' => 'Понравившееся (/favorites)'] as $type => $label)
+        @foreach(['home' => 'Главная (/)', 'page' => 'Страницы', 'author' => 'Авторы', 'poem' => 'Стихи', 'favorites' => 'Понравившееся (/favorites)', 'tag' => 'Страница тега (/tegi/...)', 'tags_index' => 'Все теги (/tegi)'] as $type => $label)
             @php $t = $templates->get($type); @endphp
             <details class="admin-spoiler" {{ old('_spoiler') === $type ? 'open' : '' }}>
                 <summary>{{ $label }}</summary>

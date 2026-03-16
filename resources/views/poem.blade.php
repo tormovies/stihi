@@ -40,6 +40,14 @@
     <div class="poem-body">
         {!! \Illuminate\Support\Str::replace(['https://stihotvorenie.su', 'http://stihotvorenie.su'], '', $poem->body ?? '') !!}
     </div>
+    @if($poem->relationLoaded('tags') && $poem->tags->isNotEmpty())
+    <div class="poem-tags">
+        <span class="poem-tags-label">Теги:</span>
+        @foreach($poem->tags as $tag)
+            <a href="{{ url('/tegi/' . $tag->slug . '/') }}" class="poem-tag-link">{{ e_decode($tag->name) }}</a>
+        @endforeach
+    </div>
+    @endif
     <div class="poem-actions">
         <button type="button" class="poem-btn poem-btn-back" id="poem-btn-back" aria-label="Назад">Назад</button>
         <button type="button" class="poem-btn poem-btn-like {{ ($liked ?? false) ? 'is-liked' : '' }}" id="poem-btn-like" data-poem-id="{{ $poem->id }}" aria-label="Нравится">

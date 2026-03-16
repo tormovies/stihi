@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\PoemController as AdminPoemController;
 use App\Http\Controllers\Admin\SecurityController as AdminSecurityController;
 use App\Http\Controllers\Admin\DeepSeekController as AdminDeepSeekController;
 use App\Http\Controllers\Admin\PoemAnalysisController as AdminPoemAnalysisController;
+use App\Http\Controllers\Admin\TagController as AdminTagController;
 use App\Http\Controllers\Admin\SeoController as AdminSeoController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PoemLikeController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\PoemAnalysisController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SlugController;
+use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -24,6 +26,8 @@ Route::post('/poem/{id}/like', [PoemLikeController::class, 'store'])->name('poem
 Route::post('/poem/{id}/unlike', [PoemLikeController::class, 'destroy'])->name('poem.unlike')->where('id', '[0-9]+');
 Route::post('/poem/read/{id}', [PoemLikeController::class, 'markAsRead'])->name('poem.read')->where('id', '[0-9]+');
 Route::get('/favorites', [PoemLikeController::class, 'favorites'])->name('favorites');
+Route::get('/tegi', [TagController::class, 'index'])->name('tags.index');
+Route::get('/tegi/{slug}', [TagController::class, 'show'])->name('tags.show')->where('slug', '[a-z0-9\-]+');
 Route::get('/robots.txt', function () {
     $sitemap = rtrim(config('app.url'), '/') . '/sitemap.xml';
     return response("User-agent: *\nDisallow:\n\nSitemap: {$sitemap}\n", 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
@@ -43,6 +47,9 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::resource('poems', AdminPoemController::class)->except('show');
     Route::get('poem-analyses', [AdminPoemAnalysisController::class, 'index'])->name('poem-analyses.index');
     Route::post('poem-analyses/destroy', [AdminPoemAnalysisController::class, 'destroy'])->name('poem-analyses.destroy');
+    Route::resource('tags', AdminTagController::class)->except('show');
+    Route::get('tags-bulk', [AdminTagController::class, 'bulkCreate'])->name('tags.bulk');
+    Route::post('tags-bulk', [AdminTagController::class, 'bulkStore'])->name('tags.bulk.store');
     Route::resource('pages', AdminPageController::class)->except('show');
     Route::get('security', [AdminSecurityController::class, 'index'])->name('security.index');
     Route::post('security', [AdminSecurityController::class, 'index'])->name('security.update');
@@ -54,6 +61,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('deepseek/run', [AdminDeepSeekController::class, 'run'])->name('deepseek.run');
     Route::get('deepseek/run/authors', [AdminDeepSeekController::class, 'runAuthors'])->name('deepseek.run.authors');
     Route::get('deepseek/run/analyses', [AdminDeepSeekController::class, 'runAnalyses'])->name('deepseek.run.analyses');
+    Route::get('deepseek/run/tags-seo', [AdminDeepSeekController::class, 'runTagsSeo'])->name('deepseek.run.tags-seo');
+    Route::get('deepseek/run/poem-tags', [AdminDeepSeekController::class, 'runPoemTags'])->name('deepseek.run.poem-tags');
     Route::get('deepseek/log', [AdminDeepSeekController::class, 'log'])->name('deepseek.log');
     Route::post('seo/templates', [AdminSeoController::class, 'updateTemplates'])->name('seo.templates.update');
     Route::post('seo/pages', [AdminSeoController::class, 'storeSeoPage'])->name('seo.pages.store');

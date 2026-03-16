@@ -62,7 +62,7 @@ class SlugController extends Controller
             return view('author', ['author' => $author, 'poems' => $poems, 'readIds' => $readIds, 'read_debug' => $readDebug]);
         }
 
-        $poem = Poem::with(['author', 'analysis'])->where('slug', $slug)->whereNotNull('published_at')->first();
+        $poem = Poem::with(['author', 'analysis', 'tags'])->where('slug', $slug)->whereNotNull('published_at')->first();
         if ($poem) {
             $likedIds = [];
             $raw = $request->cookie(PoemLikeController::COOKIE_NAME);

@@ -6,6 +6,7 @@ use App\Models\DeepSeekLog;
 use App\Models\Poem;
 use App\Models\PoemAnalysis;
 use App\Models\Setting;
+use App\Models\Tag;
 use Illuminate\Support\Facades\Http;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
@@ -344,6 +345,268 @@ class DeepSeekOptimizeService
         ]);
 
         $message = "Обработано анализов: {$processed}." . (count($failed) > 0 ? ' Не удалось: ' . implode(', ', $failed) . '.' : '');
+        return ['error' => null, 'processed' => $processed, 'failed' => $failed, 'message' => $message, 'rawResponse' => $lastResponseContent];
+    }
+
+    /**
+     * Один батч SEO для страниц тегов. Берёт теги без meta_title (или все — по необходимости).
+     *
+     * @return array{error: string|null, processed: int, failed: int[], message: string|null, rawResponse: string|null}
+     */
+    public function runTagsSeoBatch(): array
+    {
+        $apiKey = Setting::get('deepseek_api_key');
+        $timeout = (int) (Setting::get('deepseek_timeout') ?? self::DEFAULT_TIMEOUT);
+        $batchSize = (int) (Setting::get('deepseek_batch_size') ?? self::DEFAULT_BATCH_SIZE);
+        $promptTemplate = config('deepseek.prompt_template_tags_seo', '');
+
+        if (!$apiKey) {
+            return ['error' => 'Не задан API-ключ DeepSeek.', 'processed' => 0, 'failed' => [], 'message' => null, 'rawResponse' => null];
+        }
+        if (trim($promptTemplate) === '') {
+            return ['error' => 'Не задан шаблон в config/deepseek.php (prompt_template_tags_seo, {{TAGS_JSON}}).', 'processed' => 0, 'failed' => [], 'message' => null, 'rawResponse' => null];
+        }
+
+        $tags = Tag::query()
+            ->where(fn ($q) => $q->whereNull('meta_title')->orWhere('meta_title', ''))
+            ->orderBy('id')
+            ->limit($batchSize)
+            ->get(['id', 'name', 'slug']);
+
+        if ($tags->isEmpty()) {
+            return ['error' => null, 'processed' => 0, 'failed' => [], 'message' => 'Нет тегов без SEO (все уже обработаны или батч пуст).', 'rawResponse' => null];
+        }
+
+        $payload = $tags->map(fn (Tag $t) => [
+            'id' => $t->id,
+            'name' => $t->name,
+            'slug' => $t->slug,
+        ])->values()->toArray();
+
+        $json = json_encode($payload, JSON_UNESCAPED_UNICODE);
+        $userMessage = str_replace('{{TAGS_JSON}}', $json, $promptTemplate);
+
+        $maxTokens = (int) (Setting::get('deepseek_max_tokens') ?? self::DEFAULT_MAX_TOKENS);
+        $requestBody = [
+            'model' => 'deepseek-chat',
+            'messages' => [['role' => 'user', 'content' => $userMessage]],
+            'response_format' => ['type' => 'json_object'],
+            'temperature' => 0.3,
+            'max_tokens' => $maxTokens,
+        ];
+        $requestBodyRaw = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
+
+        $response = Http::timeout($timeout)
+            ->withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Content-Type' => 'application/json',
+            ])
+            ->withBody($requestBodyRaw, 'application/json')
+            ->post(self::DEEPSEEK_URL);
+
+        $failed = [];
+        $processed = 0;
+
+        if (!$response->successful()) {
+            $body = $response->body();
+            DeepSeekLog::create([
+                'status' => 'api_error',
+                'entity_type' => 'tag',
+                'request_payload' => $payload,
+                'request_full' => $requestBodyRaw,
+                'response_raw' => $body,
+                'processed_count' => 0,
+                'failed_ids' => array_column($payload, 'id'),
+                'error_message' => 'HTTP ' . $response->status() . ': ' . mb_substr($body, 0, 500),
+            ]);
+            return ['error' => 'Ошибка API: ' . $response->status(), 'processed' => 0, 'failed' => array_column($payload, 'id'), 'message' => null, 'rawResponse' => $body];
+        }
+
+        $body = $response->json();
+        $content = $body['choices'][0]['message']['content'] ?? '';
+        $decoded = json_decode($this->extractJsonFromContent($content), true);
+        $list = isset($decoded['items']) && is_array($decoded['items'])
+            ? $decoded['items']
+            : (isset($decoded['response']) && is_array($decoded['response']) ? $decoded['response'] : null);
+
+        if ($list === null) {
+            DeepSeekLog::create([
+                'status' => 'parse_error',
+                'entity_type' => 'tag',
+                'request_payload' => $payload,
+                'request_full' => $requestBodyRaw,
+                'response_raw' => $content,
+                'processed_count' => 0,
+                'failed_ids' => array_column($payload, 'id'),
+                'error_message' => 'Ответ не содержит items или response',
+            ]);
+            return ['error' => 'Ответ не содержит items или response.', 'processed' => 0, 'failed' => array_column($payload, 'id'), 'message' => null, 'rawResponse' => $content];
+        }
+
+        $tagsById = $tags->keyBy('id');
+        foreach ($list as $item) {
+            $id = (int) ($item['id'] ?? 0);
+            if ($id < 1) {
+                $failed[] = $item['id'] ?? '?';
+                continue;
+            }
+            $tag = $tagsById->get($id);
+            if (!$tag) {
+                $failed[] = $id;
+                continue;
+            }
+            $metaTitle = isset($item['meta_title']) ? $this->cleanSeoString((string) $item['meta_title'], 255) : null;
+            $metaDesc = isset($item['meta_description']) ? $this->cleanSeoString((string) $item['meta_description'], 500) : null;
+            $h1 = isset($item['h1']) ? $this->cleanSeoString((string) $item['h1'], 255) : null;
+            $h1Desc = isset($item['h1_description']) ? $this->cleanSeoString((string) $item['h1_description'], 500) : null;
+            if ($h1Desc === null && isset($item['text_by_h1'])) {
+                $h1Desc = $this->cleanSeoString((string) $item['text_by_h1'], 500);
+            }
+            $tag->update([
+                'meta_title' => $metaTitle ?: null,
+                'meta_description' => $metaDesc ?: null,
+                'h1' => $h1 ?: null,
+                'h1_description' => $h1Desc ?: null,
+            ]);
+            $processed++;
+        }
+
+        DeepSeekLog::create([
+            'status' => 'success',
+            'entity_type' => 'tag',
+            'request_payload' => $payload,
+            'request_full' => $requestBodyRaw,
+            'response_raw' => $content,
+            'processed_count' => $processed,
+            'failed_ids' => $failed ?: null,
+            'error_message' => null,
+        ]);
+
+        $message = "Обработано тегов (SEO): {$processed}." . (count($failed) > 0 ? ' Не удалось: ' . implode(', ', $failed) . '.' : '');
+        return ['error' => null, 'processed' => $processed, 'failed' => $failed, 'message' => $message, 'rawResponse' => $content];
+    }
+
+    /**
+     * Один батч разметки стихов по тегам: берём стихи без тегов (размер батча из настроек), один запрос к API с массивом стихов, ответ items с poem_id и tag_slugs для каждого.
+     *
+     * @return array{error: string|null, processed: int, failed: int[], message: string|null, rawResponse: string|null}
+     */
+    public function runPoemTagsBatch(): array
+    {
+        $apiKey = Setting::get('deepseek_api_key');
+        $timeout = (int) (Setting::get('deepseek_timeout') ?? self::DEFAULT_TIMEOUT);
+        $batchSize = (int) (Setting::get('deepseek_batch_size') ?? self::DEFAULT_BATCH_SIZE);
+        $promptTemplate = config('deepseek.prompt_template_poem_tags', '');
+
+        if (!$apiKey) {
+            return ['error' => 'Не задан API-ключ DeepSeek.', 'processed' => 0, 'failed' => [], 'message' => null, 'rawResponse' => null];
+        }
+        if (trim($promptTemplate) === '') {
+            return ['error' => 'Не задан шаблон в config/deepseek.php (prompt_template_poem_tags, {{POEMS_JSON}}, {{TAGS_JSON}}).', 'processed' => 0, 'failed' => [], 'message' => null, 'rawResponse' => null];
+        }
+
+        $tagsList = Tag::orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'slug']);
+        if ($tagsList->isEmpty()) {
+            return ['error' => null, 'processed' => 0, 'failed' => [], 'message' => 'Нет тегов в базе. Сначала создайте теги.', 'rawResponse' => null];
+        }
+
+        $tagsJson = json_encode($tagsList->map(fn (Tag $t) => ['id' => $t->id, 'name' => $t->name, 'slug' => $t->slug])->values()->toArray(), JSON_UNESCAPED_UNICODE);
+
+        $poems = Poem::with('author')
+            ->whereNotNull('published_at')
+            ->whereDoesntHave('tags')
+            ->inRandomOrder()
+            ->limit($batchSize)
+            ->get();
+
+        if ($poems->isEmpty()) {
+            return ['error' => null, 'processed' => 0, 'failed' => [], 'message' => 'Нет стихов без тегов для разметки.', 'rawResponse' => null];
+        }
+
+        $poemsPayload = $poems->map(fn (Poem $p) => [
+            'id' => $p->id,
+            'title' => $p->title,
+            'author' => $p->author ? $p->author->name : '',
+            'excerpt' => mb_substr(preg_replace('/\s+/', ' ', strip_tags((string) $p->body)), 0, self::POEM_EXCERPT_LENGTH),
+        ])->values()->toArray();
+        $poemsJson = json_encode($poemsPayload, JSON_UNESCAPED_UNICODE);
+        $userMessage = str_replace('{{POEMS_JSON}}', $poemsJson, $promptTemplate);
+        $userMessage = str_replace('{{TAGS_JSON}}', $tagsJson, $userMessage);
+
+        $maxTokens = (int) (Setting::get('deepseek_max_tokens') ?? self::DEFAULT_MAX_TOKENS);
+        $requestBody = [
+            'model' => 'deepseek-chat',
+            'messages' => [['role' => 'user', 'content' => $userMessage]],
+            'response_format' => ['type' => 'json_object'],
+            'temperature' => 0.3,
+            'max_tokens' => $maxTokens,
+        ];
+        $requestBodyRaw = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
+
+        $response = Http::timeout($timeout)
+            ->withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Content-Type' => 'application/json',
+            ])
+            ->withBody($requestBodyRaw, 'application/json')
+            ->post(self::DEEPSEEK_URL);
+
+        $failed = [];
+        $processed = 0;
+        $lastResponseContent = '';
+
+        if (!$response->successful()) {
+            $failed = $poems->pluck('id')->all();
+            $lastResponseContent = $response->body();
+            DeepSeekLog::create([
+                'status' => 'api_error',
+                'entity_type' => 'poem_tag',
+                'request_payload' => $poems->map(fn (Poem $p) => ['id' => $p->id, 'title' => $p->title])->values()->toArray(),
+                'request_full' => $requestBodyRaw,
+                'response_raw' => $lastResponseContent,
+                'processed_count' => 0,
+                'failed_ids' => $failed,
+                'error_message' => 'HTTP ' . $response->status(),
+            ]);
+            return ['error' => 'Ошибка API: ' . $response->status(), 'processed' => 0, 'failed' => $failed, 'message' => null, 'rawResponse' => $lastResponseContent];
+        }
+
+        $body = $response->json();
+        $content = $body['choices'][0]['message']['content'] ?? '';
+        $lastResponseContent = $content;
+        $decoded = json_decode($this->extractJsonFromContent($content), true);
+        $items = isset($decoded['items']) && is_array($decoded['items']) ? $decoded['items'] : [];
+
+        $poemsById = $poems->keyBy('id');
+        foreach ($items as $item) {
+            $poemId = (int) ($item['poem_id'] ?? $item['id'] ?? 0);
+            $poem = $poemsById->get($poemId);
+            if (!$poem) {
+                $failed[] = $poemId;
+                continue;
+            }
+            $tagSlugs = isset($item['tag_slugs']) && is_array($item['tag_slugs']) ? $item['tag_slugs'] : [];
+            $tagIds = $tagsList->whereIn('slug', $tagSlugs)->pluck('id')->all();
+            $poem->tags()->sync($tagIds);
+            $processed++;
+        }
+
+        $respondedIds = array_map(fn ($i) => (int) ($i['poem_id'] ?? $i['id'] ?? 0), $items);
+        $missing = $poems->pluck('id')->diff($respondedIds)->all();
+        $failed = array_values(array_unique(array_merge($failed, $missing)));
+
+        DeepSeekLog::create([
+            'status' => count($failed) === $poems->count() ? 'api_error' : 'success',
+            'entity_type' => 'poem_tag',
+            'request_payload' => $poems->map(fn (Poem $p) => ['id' => $p->id, 'title' => $p->title])->values()->toArray(),
+            'request_full' => $requestBodyRaw,
+            'response_raw' => $lastResponseContent,
+            'processed_count' => $processed,
+            'failed_ids' => $failed ?: null,
+            'error_message' => null,
+        ]);
+
+        $message = "Разметка по тегам: обработано стихов {$processed}." . (count($failed) > 0 ? ' Ошибки (id): ' . implode(', ', $failed) . '.' : '');
         return ['error' => null, 'processed' => $processed, 'failed' => $failed, 'message' => $message, 'rawResponse' => $lastResponseContent];
     }
 

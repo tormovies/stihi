@@ -31,7 +31,7 @@
                     <tr>
                         <td>{{ $log->id }}</td>
                         <td>{{ $log->created_at?->format('d.m.Y H:i:s') }}</td>
-                        <td>@if(($log->entity_type ?? 'poem') === 'author')авторы@elseif(($log->entity_type ?? '') === 'analysis')анализы@elseстихи@endif</td>
+                        <td>@if(($log->entity_type ?? 'poem') === 'author')авторы@elseif(($log->entity_type ?? '') === 'analysis')анализы@elseif(($log->entity_type ?? '') === 'tag')теги (SEO)@elseif(($log->entity_type ?? '') === 'poem_tag')разметка по тегам@elseстихи@endif</td>
                         <td>
                             @if($log->status === 'success')
                                 <span class="admin-log-status admin-log-status--success">успех</span>
@@ -81,6 +81,21 @@
                                         <li>
                                             <a href="{{ url('/' . $author->slug . '/') }}" target="_blank" rel="noopener">Автор: {{ e($author->name) }}</a>
                                             <a href="{{ route('admin.authors.edit', $author) }}" class="admin-log-edit-link" title="Изменить в админке">✎</a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </td>
+                        </tr>
+                    @endif
+                    @if(isset($log->updated_tags) && $log->updated_tags->isNotEmpty())
+                        <tr class="admin-log-detail-row">
+                            <td colspan="6">
+                                <strong>Обновлённые теги (SEO):</strong>
+                                <ul class="admin-log-links">
+                                    @foreach($log->updated_tags as $tag)
+                                        <li>
+                                            {{ e($tag->name) }} <code>{{ e($tag->slug) }}</code>
+                                            <a href="{{ route('admin.tags.edit', $tag) }}" class="admin-log-edit-link" title="Изменить в админке">✎</a>
                                         </li>
                                     @endforeach
                                 </ul>

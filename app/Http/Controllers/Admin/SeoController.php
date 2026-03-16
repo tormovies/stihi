@@ -31,7 +31,7 @@ class SeoController extends Controller
 
     public function updateTemplates(Request $request): RedirectResponse
     {
-        $types = ['home', 'page', 'author', 'poem', 'favorites'];
+        $types = ['home', 'page', 'author', 'poem', 'favorites', 'tag', 'tags_index'];
         foreach ($types as $type) {
             SeoTemplate::updateOrCreate(
                 ['type' => $type],

@@ -104,6 +104,12 @@ class SeoTemplate extends Model
         if ($type === 'favorites') {
             return 'Понравившееся';
         }
+        if ($type === 'tags_index') {
+            return 'Теги стихов';
+        }
+        if ($type === 'tag' && $entity) {
+            return e_decode($entity->name ?? '');
+        }
         if ($type === 'poem' && $entity) {
             return e_decode($entity->title ?? '');
         }
@@ -144,6 +150,12 @@ class SeoTemplate extends Model
         if ($type === 'favorites') {
             return 'Понравившееся | Стихотворения поэтов классиков';
         }
+        if ($type === 'tags_index') {
+            return 'Теги стихов по темам | Стихотворения';
+        }
+        if ($type === 'tag' && $entity) {
+            return e_decode($entity->name ?? '') . ' | Стихотворения';
+        }
         if ($type === 'poem' && $entity) {
             return e_decode($entity->title) . ' — ' . e_decode($entity->author->name ?? '');
         }
@@ -160,6 +172,12 @@ class SeoTemplate extends Model
     {
         if ($type === 'favorites') {
             return 'Стихи, отмеченные вами как понравившиеся. Читайте избранные произведения русских поэтов-классиков в одном месте.';
+        }
+        if ($type === 'tags_index') {
+            return 'Все теги и темы стихов: по темам, поводам и настроению. Выберите подборку и читайте стихи.';
+        }
+        if ($type === 'tag' && $entity) {
+            return 'Стихи по теме «' . e_decode($entity->name ?? '') . '». Читать подборку стихотворений.';
         }
         if ($type === 'poem' && $entity) {
             return 'Стихотворение ' . e_decode($entity->title) . ', ' . e_decode($entity->author->name ?? '') . '. Читать текст.';

@@ -7,6 +7,7 @@ use App\Models\Author;
 use App\Models\DeepSeekLog;
 use App\Models\Poem;
 use App\Models\Setting;
+use App\Models\Tag;
 use App\Services\DeepSeekOptimizeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,9 +40,13 @@ class DeepSeekController extends Controller
             ->where('body_length', '>=', $analysisLengthMin)
             ->whereDoesntHave('analysis')
             ->count();
+        $unprocessedTagsSeo = Tag::where(fn ($q) => $q->whereNull('meta_title')->orWhere('meta_title', ''))->count();
+        $unprocessedPoemsForTags = Poem::whereNotNull('published_at')->whereDoesntHave('tags')->count();
 
         $cronRunPoems = Setting::get('cron_run_poems', 'off');
         $cronRunAnalyses = Setting::get('cron_run_analyses', '5');
+        $cronRunTagsSeo = Setting::get('cron_run_tags_seo', 'off');
+        $cronRunPoemTags = Setting::get('cron_run_poem_tags', 'off');
 
         return view('admin.deepseek.index', [
             'apiKeySet' => $apiKey !== null && $apiKey !== '',
@@ -52,8 +57,12 @@ class DeepSeekController extends Controller
             'unprocessedPoems' => $unprocessedPoems,
             'unprocessedAuthors' => $unprocessedAuthors,
             'unprocessedAnalyses' => $unprocessedAnalyses,
+            'unprocessedTagsSeo' => $unprocessedTagsSeo,
+            'unprocessedPoemsForTags' => $unprocessedPoemsForTags,
             'cronRunPoems' => $cronRunPoems,
             'cronRunAnalyses' => $cronRunAnalyses,
+            'cronRunTagsSeo' => $cronRunTagsSeo,
+            'cronRunPoemTags' => $cronRunPoemTags,
         ]);
     }
 
@@ -64,12 +73,16 @@ class DeepSeekController extends Controller
             'batch_size' => 'nullable|integer|min:1|max:50',
             'analysis_length_min' => 'nullable|integer|min:100|max:5000',
             'max_tokens' => 'nullable|integer|min:500|max:32000',
-            'cron_run_poems' => 'nullable|string|in:off,5,10,15,20,30',
-            'cron_run_analyses' => 'nullable|string|in:off,5,10,15,20,30',
+            'cron_run_poems' => 'nullable|string|in:off,1,2,3,4,5,10,15,20,30',
+            'cron_run_analyses' => 'nullable|string|in:off,1,2,3,4,5,10,15,20,30',
+            'cron_run_tags_seo' => 'nullable|string|in:off,1,2,3,4,5,10,15,20,30',
+            'cron_run_poem_tags' => 'nullable|string|in:off,1,2,3,4,5,10,15,20,30',
         ]);
 
         Setting::set('cron_run_poems', $request->input('cron_run_poems', 'off'));
         Setting::set('cron_run_analyses', $request->input('cron_run_analyses', '5'));
+        Setting::set('cron_run_tags_seo', $request->input('cron_run_tags_seo', 'off'));
+        Setting::set('cron_run_poem_tags', $request->input('cron_run_poem_tags', 'off'));
         if ($request->filled('timeout')) {
             Setting::set('deepseek_timeout', (string) $request->timeout);
         }
@@ -309,6 +322,34 @@ class DeepSeekController extends Controller
         ]);
     }
 
+    public function runTagsSeo(DeepSeekOptimizeService $service): View
+    {
+        set_time_limit(600);
+        $result = $service->runTagsSeoBatch();
+        return view('admin.deepseek.run', [
+            'error' => $result['error'],
+            'processed' => $result['processed'],
+            'failed' => $result['failed'],
+            'entity_label' => 'тегов (SEO)',
+            'message' => $result['message'],
+            'rawResponse' => $result['rawResponse'],
+        ]);
+    }
+
+    public function runPoemTags(DeepSeekOptimizeService $service): View
+    {
+        set_time_limit(600);
+        $result = $service->runPoemTagsBatch();
+        return view('admin.deepseek.run', [
+            'error' => $result['error'],
+            'processed' => $result['processed'],
+            'failed' => $result['failed'],
+            'entity_label' => 'разметка стихов по тегам',
+            'message' => $result['message'],
+            'rawResponse' => $result['rawResponse'],
+        ]);
+    }
+
     /**
      * Декодирует HTML-сущности и обрезает строку для SEO-полей (в БД храним обычный текст).
      * Убирает &#039;, &apos;, &quot;, двойное кодирование и т.п.
@@ -342,16 +383,25 @@ class DeepSeekController extends Controller
             $failedIds = $log->failed_ids ?? [];
             $updatedIds = array_values(array_diff($requestIds, $failedIds));
             $entityType = $log->entity_type ?? 'poem';
+            $log->updated_poems = collect();
+            $log->updated_authors = collect();
+            $log->updated_tags = collect();
             if ($entityType === 'author') {
-                $log->updated_poems = collect();
                 $log->updated_authors = $updatedIds
                     ? Author::whereIn('id', $updatedIds)->get(['id', 'name', 'slug'])
+                    : collect();
+            } elseif ($entityType === 'tag') {
+                $log->updated_tags = $updatedIds
+                    ? Tag::whereIn('id', $updatedIds)->get(['id', 'name', 'slug'])
+                    : collect();
+            } elseif ($entityType === 'poem_tag') {
+                $log->updated_poems = $updatedIds
+                    ? Poem::with('author:id,name,slug')->whereIn('id', $updatedIds)->get(['id', 'slug', 'title', 'author_id'])
                     : collect();
             } else {
                 $log->updated_poems = $updatedIds
                     ? Poem::with('author:id,name,slug')->whereIn('id', $updatedIds)->get(['id', 'slug', 'title', 'author_id'])
                     : collect();
-                $log->updated_authors = collect();
             }
             $log->is_analysis = $entityType === 'analysis';
         }
