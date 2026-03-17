@@ -1689,6 +1689,13 @@ body.admin {
   border-radius: 8px;
   border: 1px solid var(--border);
 }
+.admin-filter-bar .admin-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
 .admin-filter-bar input[type="text"],
 .admin-filter-bar input[type="search"] { min-width: 200px; }
 .admin-filter-bar select { min-width: 160px; }

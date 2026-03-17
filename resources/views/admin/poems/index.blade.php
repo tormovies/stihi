@@ -14,19 +14,29 @@
     </div>
 </div>
 <form method="GET" class="admin-filter-bar">
-    <input type="hidden" name="sort" value="{{ request('sort', 'updated_at') }}">
-    <input type="hidden" name="order" value="{{ request('order', 'desc') }}">
-    <input type="text" name="q" value="{{ request('q') }}" placeholder="Поиск по названию, slug или тексту">
-    <select name="author_id">
-        <option value="">Все авторы</option>
-        @foreach($authors as $a)
-            <option value="{{ $a->id }}" @selected(request('author_id') == $a->id)>{{ $a->name }}</option>
-        @endforeach
-    </select>
-    <label class="admin-filter-label">Длина (знак.):</label>
-    <input type="number" name="length_from" value="{{ request('length_from') }}" placeholder="от" min="0" step="1" class="admin-filter-number">
-    <input type="number" name="length_to" value="{{ request('length_to') }}" placeholder="до" min="0" step="1" class="admin-filter-number">
-    <button type="submit" class="admin-btn admin-btn-secondary">Применить</button>
+    <div class="admin-filter-row">
+        <input type="hidden" name="sort" value="{{ request('sort', 'updated_at') }}">
+        <input type="hidden" name="order" value="{{ request('order', 'desc') }}">
+        <input type="text" name="q" value="{{ request('q') }}" placeholder="Поиск по названию, slug или тексту">
+        <select name="author_id">
+            <option value="">Все авторы</option>
+            @foreach($authors as $a)
+                <option value="{{ $a->id }}" @selected(request('author_id') == $a->id)>{{ $a->name }}</option>
+            @endforeach
+        </select>
+        <select name="tag_id">
+            <option value="">Все теги</option>
+            @foreach($tags as $t)
+                <option value="{{ $t->id }}" @selected(request('tag_id') == $t->id)>{{ $t->name }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div class="admin-filter-row">
+        <label class="admin-filter-label">Длина (знак.):</label>
+        <input type="number" name="length_from" value="{{ request('length_from') }}" placeholder="от" min="0" step="1" class="admin-filter-number">
+        <input type="number" name="length_to" value="{{ request('length_to') }}" placeholder="до" min="0" step="1" class="admin-filter-number">
+        <button type="submit" class="admin-btn admin-btn-secondary">Применить</button>
+    </div>
 </form>
 <div class="admin-card">
     <div class="admin-table-wrap">

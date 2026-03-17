@@ -42,9 +42,13 @@ class PoemController extends Controller
         if ($request->filled('length_to') && is_numeric($request->length_to)) {
             $query->where('body_length', '<=', (int) $request->length_to);
         }
+        if ($request->filled('tag_id') && is_numeric($request->tag_id)) {
+            $query->whereHas('tags', fn ($q) => $q->where('tags.id', (int) $request->tag_id));
+        }
         $poems = $query->paginate(20)->withQueryString();
         $authors = Author::orderBy('name')->get();
-        return view('admin.poems.index', compact('poems', 'authors', 'sort', 'order'));
+        $tags = Tag::orderBy('name')->get(['id', 'name']);
+        return view('admin.poems.index', compact('poems', 'authors', 'tags', 'sort', 'order'));
     }
 
     public function create(): View
