@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\GonePath;
 use App\Models\SiteSetting;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -25,6 +26,13 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->renderable(function (NotFoundHttpException $e): ?\Illuminate\Http\Response {
+            $request = request();
+            $path = $request->path();
+            if ($path !== '' && GonePath::isGone($path)) {
+                \App\Support\Log410::write($request);
+                View::share('skipCounter', true);
+                return response()->view('errors.410', [], 410);
+            }
             try {
                 if (SiteSetting::get('counter_show_on_404', 'off') !== 'on') {
                     View::share('skipCounter', true);

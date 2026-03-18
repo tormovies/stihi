@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PageController as AdminPageController;
 use App\Http\Controllers\Admin\PoemController as AdminPoemController;
 use App\Http\Controllers\Admin\SecurityController as AdminSecurityController;
+use App\Http\Controllers\Admin\SecurityGoneController as AdminSecurityGoneController;
 use App\Http\Controllers\Admin\DeepSeekController as AdminDeepSeekController;
 use App\Http\Controllers\Admin\PoemAnalysisController as AdminPoemAnalysisController;
 use App\Http\Controllers\Admin\TagController as AdminTagController;
@@ -53,6 +54,9 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::resource('pages', AdminPageController::class)->except('show');
     Route::get('security', [AdminSecurityController::class, 'index'])->name('security.index');
     Route::post('security', [AdminSecurityController::class, 'index'])->name('security.update');
+    Route::get('security/gone', [AdminSecurityGoneController::class, 'index'])->name('security.gone');
+    Route::post('security/gone', [AdminSecurityGoneController::class, 'index']);
+    Route::delete('security/gone/{id}', [AdminSecurityGoneController::class, 'destroy'])->name('security.gone.destroy');
     Route::get('seo', [AdminSeoController::class, 'index'])->name('seo.index');
     Route::get('deepseek', [AdminDeepSeekController::class, 'index'])->name('deepseek.index');
     Route::post('deepseek/settings', [AdminDeepSeekController::class, 'store'])->name('deepseek.settings.store');

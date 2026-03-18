@@ -9,6 +9,7 @@
 @section('content')
 <div class="admin-toolbar">
     <h1>Безопасность</h1>
+    <a href="{{ route('admin.security.gone') }}" class="admin-btn admin-btn-secondary">Страницы 410</a>
 </div>
 
 {{-- Путь к логам — три строки: каталог и путь в одной строке --}}
@@ -98,7 +99,7 @@
 {{-- Просмотр лога 404 за сегодня --}}
 <div class="admin-card">
     <h2 class="admin-card-title">Лог 404 за сегодня</h2>
-    <p class="admin-card-desc">Файл: <code>404-{{ date('Y-m-d') }}.log</code>. Колонки: дата/время, путь, источник (Referer), IP, User-Agent (разделитель — табуляция). Строки с префиксом <code>BLOCKED</code> — обращения заблокированных IP.</p>
+    <p class="admin-card-desc">Файл: <code>404-{{ date('Y-m-d') }}.log</code>. Колонки: дата/время, путь, источник (Referer), IP, User-Agent (разделитель — табуляция). Префиксы: <code>BLOCKED</code> — заблокированный IP, <code>410</code> — запрос по пути из списка «Страницы 410».</p>
     <div class="admin-form-group">
         <span class="admin-form-label">Показать:</span>
         <a href="{{ route('admin.security.index', ['display' => $display ?? 'last100', 'display_404' => 'last100']) }}" class="admin-btn admin-btn-secondary {{ ($display404 ?? '') === 'last100' ? 'admin-btn-active' : '' }}">Последние 100 строк</a>
