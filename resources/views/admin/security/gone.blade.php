@@ -93,7 +93,7 @@
 
     @if(!empty($candidates))
         <h3 class="admin-card-title" style="margin-top: 1.5rem;">Кандидаты (уже в списке 410 и пути с существующим контентом исключены)</h3>
-        <form method="POST" action="{{ route('admin.security.gone') }}" class="admin-form" id="gone-candidates-form">
+        <form method="POST" action="{{ route('admin.security.gone') }}" class="admin-form" id="gone-candidates-form" data-gone-hide-action="{{ route('admin.security.gone', ['analyze' => '1', 'date_from' => $dateFrom ?? '', 'date_to' => $dateTo ?? '', 'filter_bot' => $filterBot ?? 'all']) }}">
             @csrf
             <div class="gone-candidates-wrap">
                 <table class="gone-candidates-table admin-table">
@@ -128,11 +128,7 @@
                                 <td>{{ $c['has_bot'] ? 'да' : '—' }}</td>
                                 <td>{{ $c['content_exists'] ? 'да (не добавлять)' : 'нет' }}</td>
                                 <td class="gone-td-action">
-                                    <form method="POST" action="{{ route('admin.security.gone', ['analyze' => '1', 'date_from' => $dateFrom ?? '', 'date_to' => $dateTo ?? '', 'filter_bot' => $filterBot ?? 'all']) }}" class="gone-hide-form">
-                                        @csrf
-                                        <input type="hidden" name="exclude_path" value="{{ e($c['path']) }}">
-                                        <button type="submit" class="gone-hide-btn" title="Скрыть из кандидатов">Скрыть</button>
-                                    </form>
+                                    <button type="button" class="gone-hide-btn" title="Скрыть из кандидатов" data-path="{{ e($c['path']) }}">Скрыть</button>
                                 </td>
                             </tr>
                         @endforeach
@@ -162,6 +158,32 @@
                     var checked = form.querySelectorAll('.gone-path-check:checked').length;
                     selectAll.checked = checked === checks.length;
                     selectAll.indeterminate = checked > 0 && checked < checks.length;
+                });
+            }
+            // Кнопки «Скрыть» — отдельная отправка, без вложенной формы
+            var hideAction = form.getAttribute('data-gone-hide-action');
+            var token = form.querySelector('input[name="_token"]');
+            if (hideAction && token) {
+                form.querySelectorAll('.gone-hide-btn').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var path = this.getAttribute('data-path');
+                        if (!path || !confirm('Скрыть путь из кандидатов?')) return;
+                        var f = document.createElement('form');
+                        f.method = 'POST';
+                        f.action = hideAction;
+                        var csrf = document.createElement('input');
+                        csrf.type = 'hidden';
+                        csrf.name = '_token';
+                        csrf.value = token.value;
+                        f.appendChild(csrf);
+                        var inp = document.createElement('input');
+                        inp.type = 'hidden';
+                        inp.name = 'exclude_path';
+                        inp.value = path;
+                        f.appendChild(inp);
+                        document.body.appendChild(f);
+                        f.submit();
+                    });
                 });
             }
         })();
