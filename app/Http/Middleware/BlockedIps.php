@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\View;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Блокирует доступ с IP из списка в настройках (Безопасность).
- * Обращения логируются в storage/logs/404-YYYY-MM-DD.log с пометкой BLOCKED.
- * Блокируется весь сайт, включая админку.
+ * Для IP из списка (Безопасность): блокирует только админку (403).
+ * Существующий контент (главная, стихи, авторы, теги и т.д.) отдаётся как обычно.
+ * На несуществующие URL (404) заблокированным IP отдаётся 403 — см. Log404Requests.
  */
 class BlockedIps
 {
@@ -32,6 +32,11 @@ class BlockedIps
                 return $next($request);
             }
         } catch (\Throwable $e) {
+            return $next($request);
+        }
+
+        // Заблокированным IP запрещаем только админку; остальное — в Log404Requests (404 → 403)
+        if (!$request->is('admin') && !$request->is('admin/*')) {
             return $next($request);
         }
 

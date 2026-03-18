@@ -63,7 +63,7 @@
         </div>
         <div class="admin-form-group">
             <label for="blocked_ips" class="admin-form-label">Заблокированные IP</label>
-            <p class="admin-card-desc" style="margin: 0.25rem 0 0.5rem;">Один IP в строке. Доступ с этих адресов запрещён (403) на всём сайте, включая админку. Обращения пишутся в лог 404 с пометкой BLOCKED.</p>
+            <p class="admin-card-desc" style="margin: 0.25rem 0 0.5rem;">Один IP в строке. С этих адресов: доступ к админке запрещён (403); существующий контент (главная, стихи, авторы, теги и т.д.) отдаётся как обычно; на несуществующие страницы — 403 вместо 404. Обращения с 403 пишутся в лог с пометкой BLOCKED.</p>
             <p class="admin-card-desc" style="margin: 0.25rem 0 0.5rem;">Ваш IP сейчас: <strong><code>{{ $currentIp ?? request()->ip() }}</code></strong> — не добавляйте его, чтобы не заблокировать себя.</p>
             <textarea id="blocked_ips" name="blocked_ips" rows="6" class="admin-textarea-monospace" placeholder="192.168.1.1&#10;10.0.0.5">{{ old('blocked_ips', $blockedIps ?? '') }}</textarea>
         </div>
