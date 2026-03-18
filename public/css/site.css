@@ -1676,6 +1676,8 @@ body.admin {
 .theme-dark .admin-log-status--success { background: #14532d; color: #bbf7d0; }
 .theme-dark .admin-log-status--error { background: #7f1d1d; color: #fecaca; }
 .theme-dark .admin-log-status--warn { background: #78350f; color: #fde68a; }
+.admin-log-path { word-break: break-all; font-size: 0.9rem; margin: 0.25rem 0; }
+.admin-log-view { font-family: ui-monospace, monospace; font-size: 0.8rem; }
 
 /* Filter bar */
 .admin-filter-bar {

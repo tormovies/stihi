@@ -1,8 +1,11 @@
 <?php
 
+use App\Models\SiteSetting;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\View;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,8 +17,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\GzipResponse::class,
             \App\Http\Middleware\LogBotRequests::class,
+            \App\Http\Middleware\Log404Requests::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->renderable(function (NotFoundHttpException $e): ?\Illuminate\Http\Response {
+            try {
+                if (SiteSetting::get('counter_show_on_404', 'off') !== 'on') {
+                    View::share('skipCounter', true);
+                }
+            } catch (\Throwable $t) {
+                View::share('skipCounter', true);
+            }
+            return null;
+        });
     })->create();

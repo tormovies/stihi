@@ -37,6 +37,9 @@ class LogBotRequests
 
         try {
             $mode = SiteSetting::get('request_log_mode', 'bots');
+            if ($mode === 'off') {
+                return $response;
+            }
             $ua = $request->userAgent() ?? '';
             $shouldLog = $mode === 'all' || ($ua !== '' && $this->looksLikeBot($ua));
             if (!$shouldLog) {

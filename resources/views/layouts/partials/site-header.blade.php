@@ -39,7 +39,7 @@
     <meta property="og:locale" content="ru_RU">
     @stack('og_meta')
     @stack('json_ld')
-    @if(!empty($counterCode))
+    @if(!empty($counterCode) && empty($skipCounter))
 {!! $counterCode !!}
     @endif
 </head>
