@@ -61,6 +61,12 @@
                 вкл
             </label>
         </div>
+        <div class="admin-form-group">
+            <label for="blocked_ips" class="admin-form-label">Заблокированные IP</label>
+            <p class="admin-card-desc" style="margin: 0.25rem 0 0.5rem;">Один IP в строке. Доступ с этих адресов запрещён (403) на всём сайте, включая админку. Обращения пишутся в лог 404 с пометкой BLOCKED.</p>
+            <p class="admin-card-desc" style="margin: 0.25rem 0 0.5rem;">Ваш IP сейчас: <strong><code>{{ $currentIp ?? request()->ip() }}</code></strong> — не добавляйте его, чтобы не заблокировать себя.</p>
+            <textarea id="blocked_ips" name="blocked_ips" rows="6" class="admin-textarea-monospace" placeholder="192.168.1.1&#10;10.0.0.5">{{ old('blocked_ips', $blockedIps ?? '') }}</textarea>
+        </div>
         <div class="admin-form-actions">
             <button type="submit" class="admin-btn admin-btn-primary">Сохранить</button>
         </div>
@@ -92,7 +98,7 @@
 {{-- Просмотр лога 404 за сегодня --}}
 <div class="admin-card">
     <h2 class="admin-card-title">Лог 404 за сегодня</h2>
-    <p class="admin-card-desc">Файл: <code>404-{{ date('Y-m-d') }}.log</code>. Колонки: дата/время, путь, источник (Referer), IP, User-Agent (разделитель — табуляция).</p>
+    <p class="admin-card-desc">Файл: <code>404-{{ date('Y-m-d') }}.log</code>. Колонки: дата/время, путь, источник (Referer), IP, User-Agent (разделитель — табуляция). Строки с префиксом <code>BLOCKED</code> — обращения заблокированных IP.</p>
     <div class="admin-form-group">
         <span class="admin-form-label">Показать:</span>
         <a href="{{ route('admin.security.index', ['display' => $display ?? 'last100', 'display_404' => 'last100']) }}" class="admin-btn admin-btn-secondary {{ ($display404 ?? '') === 'last100' ? 'admin-btn-active' : '' }}">Последние 100 строк</a>
