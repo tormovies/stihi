@@ -57,6 +57,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('security/gone', [AdminSecurityGoneController::class, 'index'])->name('security.gone');
     Route::post('security/gone', [AdminSecurityGoneController::class, 'index']);
     Route::delete('security/gone/{id}', [AdminSecurityGoneController::class, 'destroy'])->name('security.gone.destroy');
+    Route::delete('security/gone/exclude/{id}', [AdminSecurityGoneController::class, 'destroyExclude'])->name('security.gone.exclude.destroy');
     Route::get('seo', [AdminSeoController::class, 'index'])->name('seo.index');
     Route::get('deepseek', [AdminDeepSeekController::class, 'index'])->name('deepseek.index');
     Route::post('deepseek/settings', [AdminDeepSeekController::class, 'store'])->name('deepseek.settings.store');

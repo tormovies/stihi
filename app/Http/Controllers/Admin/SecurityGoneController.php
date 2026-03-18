@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Author;
+use App\Models\GoneCandidateExclude;
 use App\Models\GonePath;
 use App\Models\Poem;
 use Illuminate\Http\RedirectResponse;
@@ -27,7 +28,10 @@ class SecurityGoneController extends Controller
     public function index(Request $request): View|RedirectResponse
     {
         if ($request->isMethod('post')) {
-            if ($request->has('path') && $request->filled('path')) {
+            if ($request->filled('exclude_path')) {
+                return $this->storeExclude($request);
+            }
+            if ($request->filled('path')) {
                 return $this->storePath($request);
             }
             if ($request->has('paths') && is_array($request->paths)) {
@@ -36,6 +40,7 @@ class SecurityGoneController extends Controller
         }
 
         $gonePaths = GonePath::orderBy('path')->get();
+        $excludedPaths = GoneCandidateExclude::orderBy('path')->get();
         $candidates = [];
         $dateFrom = $request->query('date_from', now()->subDays(7)->format('Y-m-d'));
         $dateTo = $request->query('date_to', now()->format('Y-m-d'));
@@ -43,10 +48,16 @@ class SecurityGoneController extends Controller
 
         if ($request->has('analyze') && $request->query('analyze') === '1') {
             $candidates = $this->parseLogCandidates($dateFrom, $dateTo, $filterBot);
+            if (app()->environment('local') && empty($candidates)) {
+                $candidates = $this->getTestCandidates();
+            }
+            $excludedSet = $excludedPaths->pluck('path')->all();
+            $candidates = array_values(array_filter($candidates, fn ($c) => !in_array($c['path'], $excludedSet, true)));
         }
 
         return view('admin.security.gone', [
             'gonePaths' => $gonePaths,
+            'excludedPaths' => $excludedPaths,
             'candidates' => $candidates,
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,
@@ -58,6 +69,28 @@ class SecurityGoneController extends Controller
     {
         GonePath::where('id', $id)->delete();
         return redirect()->route('admin.security.gone')->with('success', 'Путь удалён из списка 410.');
+    }
+
+    public function destroyExclude(int $id): RedirectResponse
+    {
+        GoneCandidateExclude::where('id', $id)->delete();
+        return redirect()->route('admin.security.gone')->with('success', 'Путь снова показывается в кандидатах.');
+    }
+
+    private function storeExclude(Request $request): RedirectResponse
+    {
+        $request->validate(['exclude_path' => 'required|string|max:500']);
+        $path = trim($request->input('exclude_path'));
+        if ($path !== '') {
+            GoneCandidateExclude::firstOrCreate(['path' => $path]);
+        }
+        $query = array_filter([
+            'analyze' => $request->query('analyze'),
+            'date_from' => $request->query('date_from'),
+            'date_to' => $request->query('date_to'),
+            'filter_bot' => $request->query('filter_bot'),
+        ]);
+        return redirect()->route('admin.security.gone', $query)->with('success', 'Путь скрыт из кандидатов.');
     }
 
     private function storePath(Request $request): RedirectResponse
@@ -213,6 +246,28 @@ class SecurityGoneController extends Controller
             }
         }
         return false;
+    }
+
+    /** Тестовые кандидаты для проверки на локалке (когда логов 404 нет). */
+    private function getTestCandidates(): array
+    {
+        $existingPaths = GonePath::pluck('path')->all();
+        $test = [
+            ['path' => 'stariy-stih-iz-archiva', 'count' => 12, 'has_bot' => true, 'content_exists' => false],
+            ['path' => 'udalennyy-avtor', 'count' => 8, 'has_bot' => true, 'content_exists' => false],
+            ['path' => 'old-page', 'count' => 5, 'has_bot' => false, 'content_exists' => false],
+            ['path' => 'tegi/staraya-tema', 'count' => 3, 'has_bot' => true, 'content_exists' => false],
+            ['path' => 'pushkin', 'count' => 2, 'has_bot' => true, 'content_exists' => true],
+        ];
+        $out = [];
+        foreach ($test as $c) {
+            if (in_array($c['path'], $existingPaths, true)) {
+                continue;
+            }
+            $c['content_exists'] = $this->verifyPathNotContent($c['path']) !== null;
+            $out[] = $c;
+        }
+        return $out;
     }
 
     /** Пути с .php — брутфорс, не попадают в кандидаты и в список 410. Публичных страниц .php нет. */

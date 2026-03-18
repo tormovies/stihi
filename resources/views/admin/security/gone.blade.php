@@ -39,28 +39,18 @@
     @if($gonePaths->isEmpty())
         <p class="admin-card-desc">Список пуст.</p>
     @else
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Путь</th>
-                    <th>Действие</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($gonePaths as $row)
-                    <tr>
-                        <td><code>{{ e($row->path) }}</code></td>
-                        <td>
-                            <form method="POST" action="{{ route('admin.security.gone.destroy', $row->id) }}" class="inline" onsubmit="return confirm('Удалить путь из списка 410?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="admin-btn admin-btn-secondary">Удалить</button>
-                            </form>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+        <div class="gone-list">
+            @foreach($gonePaths as $row)
+                <span class="gone-chip">
+                    <span class="gone-chip-text" title="{{ e($row->path) }}">{{ e($row->path) }}</span>
+                    <form method="POST" action="{{ route('admin.security.gone.destroy', $row->id) }}" class="gone-chip-form" onsubmit="return confirm('Удалить путь из списка 410?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="gone-chip-remove" aria-label="Удалить">×</button>
+                    </form>
+                </span>
+            @endforeach
+        </div>
     @endif
 </div>
 
@@ -84,35 +74,71 @@
         <button type="submit" class="admin-btn admin-btn-primary" style="margin-left: 0.25rem;">Анализ</button>
     </form>
 
+    @if(!empty($excludedPaths) && $excludedPaths->isNotEmpty())
+        <h3 class="admin-card-title" style="margin-top: 1.5rem;">Скрыты из кандидатов</h3>
+        <p class="admin-card-desc">Эти пути не показываются в таблице кандидатов. Нажмите ×, чтобы снова показывать при анализе.</p>
+        <div class="gone-list">
+            @foreach($excludedPaths as $row)
+                <span class="gone-chip">
+                    <span class="gone-chip-text" title="{{ e($row->path) }}">{{ e($row->path) }}</span>
+                    <form method="POST" action="{{ route('admin.security.gone.exclude.destroy', $row->id) }}" class="gone-chip-form" onsubmit="return confirm('Снова показывать в кандидатах?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="gone-chip-remove" aria-label="Показать в кандидатах">×</button>
+                    </form>
+                </span>
+            @endforeach
+        </div>
+    @endif
+
     @if(!empty($candidates))
         <h3 class="admin-card-title" style="margin-top: 1.5rem;">Кандидаты (уже в списке 410 и пути с существующим контентом исключены)</h3>
-        <form method="POST" action="{{ route('admin.security.gone') }}" class="admin-form">
+        <form method="POST" action="{{ route('admin.security.gone') }}" class="admin-form" id="gone-candidates-form">
             @csrf
-            @foreach($candidates as $c)
-                @if(!$c['content_exists'])
-                    <input type="hidden" name="paths[]" value="{{ e($c['path']) }}">
-                @endif
-            @endforeach
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Путь</th>
-                        <th>Запросов</th>
-                        <th>Бот</th>
-                        <th>Контент есть</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($candidates as $c)
+            <div class="gone-candidates-wrap">
+                <table class="gone-candidates-table admin-table">
+                    <thead>
                         <tr>
-                            <td><code>{{ e($c['path']) }}</code></td>
-                            <td>{{ $c['count'] }}</td>
-                            <td>{{ $c['has_bot'] ? 'да' : '—' }}</td>
-                            <td>{{ $c['content_exists'] ? 'да (не добавлять)' : 'нет' }}</td>
+                            <th class="gone-th-check">
+                                <label class="gone-check-label" title="Выбрать все">
+                                    <input type="checkbox" id="gone-select-all" aria-label="Выбрать все">
+                                </label>
+                            </th>
+                            <th>Путь</th>
+                            <th>Запросов</th>
+                            <th>Бот</th>
+                            <th>Контент есть</th>
+                            <th>Скрыть</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach($candidates as $c)
+                            <tr class="{{ $c['content_exists'] ? 'gone-row-no-add' : '' }}">
+                                <td class="gone-td-check">
+                                    @if(!$c['content_exists'])
+                                        <label class="gone-check-label">
+                                            <input type="checkbox" name="paths[]" value="{{ e($c['path']) }}" class="gone-path-check">
+                                        </label>
+                                    @else
+                                        —
+                                    @endif
+                                </td>
+                                <td><code>{{ e($c['path']) }}</code></td>
+                                <td>{{ $c['count'] }}</td>
+                                <td>{{ $c['has_bot'] ? 'да' : '—' }}</td>
+                                <td>{{ $c['content_exists'] ? 'да (не добавлять)' : 'нет' }}</td>
+                                <td class="gone-td-action">
+                                    <form method="POST" action="{{ route('admin.security.gone', ['analyze' => '1', 'date_from' => $dateFrom ?? '', 'date_to' => $dateTo ?? '', 'filter_bot' => $filterBot ?? 'all']) }}" class="gone-hide-form">
+                                        @csrf
+                                        <input type="hidden" name="exclude_path" value="{{ e($c['path']) }}">
+                                        <button type="submit" class="gone-hide-btn" title="Скрыть из кандидатов">Скрыть</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
             @php $canAdd = collect($candidates)->contains(fn($c) => !$c['content_exists']); @endphp
             @if($canAdd)
                 <div class="admin-form-actions" style="margin-top: 1rem;">
@@ -122,6 +148,24 @@
                 <p class="admin-card-desc">Нет кандидатов без контента для добавления (все уже в списке или по пути есть стих/автор).</p>
             @endif
         </form>
+        <script>
+        (function() {
+            var form = document.getElementById('gone-candidates-form');
+            if (!form) return;
+            var selectAll = form.querySelector('#gone-select-all');
+            var checks = form.querySelectorAll('.gone-path-check');
+            if (selectAll && checks.length) {
+                selectAll.addEventListener('change', function() {
+                    checks.forEach(function(cb) { cb.checked = selectAll.checked; });
+                });
+                form.addEventListener('change', function() {
+                    var checked = form.querySelectorAll('.gone-path-check:checked').length;
+                    selectAll.checked = checked === checks.length;
+                    selectAll.indeterminate = checked > 0 && checked < checks.length;
+                });
+            }
+        })();
+        </script>
     @endif
 </div>
 @endsection
