@@ -26,6 +26,8 @@ class PoemsMergeTitleDuplicatesCommand extends Command
 
     public function handle(): int
     {
+        @ini_set('memory_limit', '512M');
+
         $apply = (bool) $this->option('apply');
         $maxLenDiff = max(0, (int) $this->option('length-diff'));
 
@@ -56,7 +58,7 @@ class PoemsMergeTitleDuplicatesCommand extends Command
                 $this->line('  «' . $plan['norm_title'] . '» | длины: ' . $lengths->min() . '–' . $lengths->max());
                 $this->line('  канон: id=' . $plan['canon']->id . ' slug=' . $plan['canon']->slug . ' likes=' . $plan['canon']->likes);
                 foreach ($plan['dupes'] as $d) {
-                    $this->line('  дубль: id=' . $d->id . ' slug=' . $d->slug . ' likes=' . $d->likes . ' analiz=' . ($d->analysis ? 'да' : 'нет'));
+                    $this->line('  дубль: id=' . $d->id . ' slug=' . $d->slug . ' likes=' . $d->likes . ' analiz=' . ($d->analysis_exists ? 'да' : 'нет'));
                 }
             }
         }
@@ -92,7 +94,7 @@ class PoemsMergeTitleDuplicatesCommand extends Command
                 foreach ($plan['dupes'] as $dup) {
                     $likesToAdd = (int) $dup->likes;
                     $this->ensureRedirect($dup->slug, $canon->slug);
-                    $dupHasAnalysis = $dup->analysis !== null;
+                    $dupHasAnalysis = (bool) $dup->analysis_exists;
                     if ($dupHasAnalysis && $canonHasAnalysis) {
                         $this->ensureRedirect($dup->slug . '/analiz', $canon->slug . '/analiz');
                     }
@@ -114,7 +116,7 @@ class PoemsMergeTitleDuplicatesCommand extends Command
                 foreach ($plan['dupes'] as $dup) {
                     $likesToAdd = (int) $dup->likes;
                     $this->ensureRedirect($dup->slug, $canon->slug);
-                    $dupHasAnalysis = $dup->analysis !== null;
+                    $dupHasAnalysis = (bool) $dup->analysis_exists;
                     if ($dupHasAnalysis && $canonHasAnalysis) {
                         $this->ensureRedirect($dup->slug . '/analiz', $canon->slug . '/analiz');
                     }
@@ -135,7 +137,10 @@ class PoemsMergeTitleDuplicatesCommand extends Command
 
     private function loadPoemsForMerge(): Collection
     {
-        $q = Poem::query()->with(['author:id,name,slug', 'analysis']);
+        // Не подгружаем analysis (там длинный текст) — только флаг exists, иначе OOM на проде
+        $q = Poem::query()
+            ->with(['author:id,name,slug'])
+            ->withExists('analysis');
         if (!$this->option('include-unpublished')) {
             $q->whereNotNull('published_at');
         }

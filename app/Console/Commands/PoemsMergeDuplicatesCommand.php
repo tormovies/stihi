@@ -26,19 +26,24 @@ class PoemsMergeDuplicatesCommand extends Command
 
     public function handle(): int
     {
+        @ini_set('memory_limit', '512M');
+
         $apply = (bool) $this->option('apply');
         $withRedirects = (bool) $this->option('redirects');
         $authorId = $this->option('author');
         $authorFilter = $authorId !== null && $authorId !== '' ? (int) $authorId : null;
 
-        $q = Poem::query()->with('analysis');
+        $q = Poem::query()
+            ->withExists('analysis');
         if (!$this->option('include-unpublished')) {
             $q->whereNotNull('published_at');
         }
         if ($authorFilter !== null) {
             $q->where('author_id', $authorFilter);
         }
-        $poems = $q->orderBy('author_id')->orderBy('id')->get();
+        $poems = $q->orderBy('author_id')->orderBy('id')->get([
+            'id', 'author_id', 'title', 'slug', 'body_length', 'published_at', 'likes',
+        ]);
 
         /** @var Collection<string, Collection<int, Poem>> $groups */
         $groups = $poems->groupBy(function (Poem $p) {
@@ -87,7 +92,7 @@ class PoemsMergeDuplicatesCommand extends Command
             $this->line('— Группа ' . ($i + 1) . ', stem=<comment>' . $plan['stem'] . '</comment>, author_id=' . $plan['canon']->author_id);
             $this->line('  канон: id=' . $plan['canon']->id . ' slug=' . $plan['canon']->slug . ' likes=' . $plan['canon']->likes . ' title=' . $this->oneLineTitle($plan['canon']->title));
             foreach ($plan['dupes'] as $d) {
-                $hasA = $d->analysis !== null;
+                $hasA = (bool) $d->analysis_exists;
                 $this->line('  дубль: id=' . $d->id . ' slug=' . $d->slug . ' likes=' . $d->likes . ' analiz=' . ($hasA ? 'да' : 'нет') . ' | ' . $this->oneLineTitle($d->title));
             }
         }
@@ -116,7 +121,7 @@ class PoemsMergeDuplicatesCommand extends Command
 
                     if ($withRedirects) {
                         $this->ensureRedirect($dup->slug, $canon->slug);
-                        $dupHasAnalysis = $dup->analysis !== null;
+                        $dupHasAnalysis = (bool) $dup->analysis_exists;
                         if ($dupHasAnalysis && $canonHasAnalysis) {
                             $this->ensureRedirect($dup->slug . '/analiz', $canon->slug . '/analiz');
                         }
