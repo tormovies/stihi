@@ -1525,6 +1525,20 @@ body.admin {
 }
 .gone-hide-btn:hover { background: var(--border); }
 
+/* Страница 410: длинный текущий список — в спойлере с прокруткой */
+.gone-current-spoiler {
+  margin-bottom: 0;
+}
+.gone-current-spoiler > summary .gone-spoiler-count {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+.gone-current-spoiler-body {
+  max-height: min(70vh, 32rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Текущий список 410 — чипы в строку */
 .gone-list {
   display: flex;

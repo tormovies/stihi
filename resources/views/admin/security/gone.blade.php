@@ -33,25 +33,29 @@
     <p class="admin-card-desc">Перед добавлением проверяется, что стиха или автора с таким slug нет.</p>
 </div>
 
-{{-- Текущий список --}}
+{{-- Текущий список — под спойлером (список может быть очень длинным) --}}
 <div class="admin-card">
-    <h2 class="admin-card-title">Текущий список ({{ $gonePaths->count() }})</h2>
-    @if($gonePaths->isEmpty())
-        <p class="admin-card-desc">Список пуст.</p>
-    @else
-        <div class="gone-list">
-            @foreach($gonePaths as $row)
-                <span class="gone-chip">
-                    <span class="gone-chip-text" title="{{ e($row->path) }}">{{ e($row->path) }}</span>
-                    <form method="POST" action="{{ route('admin.security.gone.destroy', $row->id) }}" class="gone-chip-form" onsubmit="return confirm('Удалить путь из списка 410?');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="gone-chip-remove" aria-label="Удалить">×</button>
-                    </form>
-                </span>
-            @endforeach
+    <details class="admin-spoiler gone-current-spoiler">
+        <summary>Текущий список 410 <span class="gone-spoiler-count">({{ $gonePaths->count() }})</span></summary>
+        <div class="admin-spoiler-body gone-current-spoiler-body">
+            @if($gonePaths->isEmpty())
+                <p class="admin-card-desc" style="margin: 0;">Список пуст.</p>
+            @else
+                <div class="gone-list">
+                    @foreach($gonePaths as $row)
+                        <span class="gone-chip">
+                            <span class="gone-chip-text" title="{{ e($row->path) }}">{{ e($row->path) }}</span>
+                            <form method="POST" action="{{ route('admin.security.gone.destroy', $row->id) }}" class="gone-chip-form" onsubmit="return confirm('Удалить путь из списка 410?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="gone-chip-remove" aria-label="Удалить">×</button>
+                            </form>
+                        </span>
+                    @endforeach
+                </div>
+            @endif
         </div>
-    @endif
+    </details>
 </div>
 
 {{-- Анализ лога 404 --}}
