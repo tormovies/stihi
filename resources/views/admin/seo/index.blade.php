@@ -9,6 +9,7 @@
 @section('content')
 <div class="admin-toolbar">
     <h1>SEO</h1>
+    <a href="{{ route('admin.seo.redirects.index') }}" class="admin-btn admin-btn-secondary">301 редиректы</a>
 </div>
 
 {{-- SEO-шаблоны: каждый тип в спойлере --}}
@@ -17,14 +18,14 @@
     <p class="admin-card-desc">Главная — meta и заголовки для главной (/). Остальные — для страниц, авторов и стихов без своих meta. Подстановки: <code>{title}</code>, <code>{name}</code>, <code>{author}</code>.</p>
     <form method="POST" action="{{ route('admin.seo.templates.update') }}" class="admin-form">
         @csrf
-        @foreach(['home' => 'Главная (/)', 'page' => 'Страницы', 'author' => 'Авторы', 'poem' => 'Стихи', 'favorites' => 'Понравившееся (/favorites)', 'tag' => 'Страница тега (/tegi/...)', 'tags_index' => 'Все теги (/tegi)'] as $type => $label)
+        @foreach(['home' => 'Главная (/)', 'page' => 'Страницы', 'author' => 'Авторы', 'poem' => 'Стихи', 'favorites' => 'Понравившееся (/favorites)', 'liked_by_all' => 'Понравившееся всем (/ponravivshiesya-vsem)', 'tag' => 'Страница тега (/tegi/...)', 'tags_index' => 'Все теги (/tegi)'] as $type => $label)
             @php $t = $templates->get($type); @endphp
             <details class="admin-spoiler" {{ old('_spoiler') === $type ? 'open' : '' }}>
                 <summary>{{ $label }}</summary>
                 <div class="admin-spoiler-body">
                     <div class="admin-form-group">
                         <label for="tpl_meta_title_{{ $type }}">Meta title</label>
-                        <input type="text" id="tpl_meta_title_{{ $type }}" name="templates[{{ $type }}][meta_title]" value="{{ old("templates.{$type}.meta_title", $t?->meta_title) }}" placeholder="{{ $type === 'home' ? 'Стихотворения поэтов классиков' : ($type === 'favorites' ? 'Понравившееся | Стихотворения поэтов классиков' : ($type === 'poem' ? '{title} — {author}' : ($type === 'author' ? '{name} — стихи' : '{title}'))) }}">
+                        <input type="text" id="tpl_meta_title_{{ $type }}" name="templates[{{ $type }}][meta_title]" value="{{ old("templates.{$type}.meta_title", $t?->meta_title) }}" placeholder="{{ $type === 'home' ? 'Стихотворения поэтов классиков' : ($type === 'favorites' ? 'Понравившееся | Стихотворения поэтов классиков' : ($type === 'liked_by_all' ? 'Понравившееся всем | Стихотворения поэтов классиков' : ($type === 'poem' ? '{title} — {author}' : ($type === 'author' ? '{name} — стихи' : '{title}')))) }}">
                     </div>
                     <div class="admin-form-group">
                         <label for="tpl_meta_desc_{{ $type }}">Meta description</label>
@@ -32,7 +33,7 @@
                     </div>
                     <div class="admin-form-group">
                         <label for="tpl_h1_{{ $type }}">H1</label>
-                        <input type="text" id="tpl_h1_{{ $type }}" name="templates[{{ $type }}][h1]" value="{{ old("templates.{$type}.h1", $t?->h1) }}" placeholder="{{ $type === 'home' ? 'Стихотворения поэтов классиков' : ($type === 'favorites' ? 'Понравившееся' : ($type === 'author' ? '{name}' : ($type === 'poem' ? '{title}' : '{title}'))) }}">
+                        <input type="text" id="tpl_h1_{{ $type }}" name="templates[{{ $type }}][h1]" value="{{ old("templates.{$type}.h1", $t?->h1) }}" placeholder="{{ $type === 'home' ? 'Стихотворения поэтов классиков' : ($type === 'favorites' ? 'Понравившееся' : ($type === 'liked_by_all' ? 'Понравившееся всем' : ($type === 'author' ? '{name}' : ($type === 'poem' ? '{title}' : '{title}')))) }}">
                     </div>
                     <div class="admin-form-group">
                         <label for="tpl_h1_desc_{{ $type }}">Описание под H1</label>

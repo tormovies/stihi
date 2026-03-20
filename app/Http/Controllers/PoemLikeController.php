@@ -109,6 +109,31 @@ class PoemLikeController extends Controller
     }
 
     /**
+     * Стихи с лайками в БД (likes > 0), по убыванию лайков. Две колонки по 20 на странице (40 на страницу).
+     */
+    public function likedByAll(): View
+    {
+        $poems = Poem::query()
+            ->with('author:id,name,slug')
+            ->whereNotNull('published_at')
+            ->where('likes', '>', 0)
+            ->orderByDesc('likes')
+            ->orderBy('title')
+            ->paginate(40)
+            ->withQueryString();
+
+        $items = $poems->getCollection();
+        $left = $items->take(20);
+        $right = $items->slice(20, 20)->values();
+
+        return view('liked-by-all', [
+            'poems' => $poems,
+            'poemsLeft' => $left,
+            'poemsRight' => $right,
+        ]);
+    }
+
+    /**
      * Поставить лайк стиху. Один раз с одного браузера (по cookie).
      */
     public function store(Request $request, int $id): JsonResponse

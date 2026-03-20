@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\DeepSeekController as AdminDeepSeekController;
 use App\Http\Controllers\Admin\PoemAnalysisController as AdminPoemAnalysisController;
 use App\Http\Controllers\Admin\TagController as AdminTagController;
 use App\Http\Controllers\Admin\SeoController as AdminSeoController;
+use App\Http\Controllers\Admin\UrlRedirectController as AdminUrlRedirectController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PoemLikeController;
 use App\Http\Controllers\SearchController;
@@ -27,6 +28,7 @@ Route::post('/poem/{id}/like', [PoemLikeController::class, 'store'])->name('poem
 Route::post('/poem/{id}/unlike', [PoemLikeController::class, 'destroy'])->name('poem.unlike')->where('id', '[0-9]+');
 Route::post('/poem/read/{id}', [PoemLikeController::class, 'markAsRead'])->name('poem.read')->where('id', '[0-9]+');
 Route::get('/favorites', [PoemLikeController::class, 'favorites'])->name('favorites');
+Route::get('/ponravivshiesya-vsem', [PoemLikeController::class, 'likedByAll'])->name('liked.by.all');
 Route::get('/tegi', [TagController::class, 'index'])->name('tags.index');
 Route::get('/tegi/{slug}', [TagController::class, 'show'])->name('tags.show')->where('slug', '[a-z0-9\-]+');
 Route::get('/robots.txt', function () {
@@ -75,6 +77,9 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::delete('seo/pages/{seoPage}', [AdminSeoController::class, 'destroySeoPage'])->name('seo.pages.destroy');
     Route::post('seo/sitemap-refresh', [AdminSeoController::class, 'sitemapRefresh'])->name('seo.sitemap.refresh');
     Route::post('seo/counters', [AdminSeoController::class, 'updateCounters'])->name('seo.counters.update');
+    Route::prefix('seo')->name('seo.')->group(function () {
+        Route::resource('redirects', AdminUrlRedirectController::class)->except(['show']);
+    });
 });
 
 Route::get('/{slug}/analiz', [PoemAnalysisController::class, 'show'])->name('poem.analysis');

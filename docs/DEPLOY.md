@@ -153,6 +153,28 @@ php8.3 artisan view:cache
 php8.3 artisan css:minify
 ```
 
+### Очистка дублей стихов на продакшене (после бэкапа БД)
+
+Команды из каталога `laravel/`. Сначала **бэкап MySQL**, затем только план без изменений:
+
+```bash
+cd /home/a/adminfeg/stihotvorenie.su/laravel
+
+# План: дубли по названию + длина (порог по умолчанию 20)
+php8.3 artisan poems:find-duplicates
+
+# План: слияние по заголовку (length-diff=40) + фаза по slug stem (-2/-3)
+php8.3 artisan poems:merge-title-duplicates --length-diff=40
+
+# Выполнить слияние + 301 в url_redirects (осторожно: массово)
+php8.3 artisan poems:merge-title-duplicates --length-diff=40 --apply
+
+# Только семейства slug без смены заголовка (если нужно отдельно):
+# php8.3 artisan poems:merge-duplicates --apply --redirects
+```
+
+После массовых правок при необходимости: `php8.3 artisan cache:clear` (если кешируете ответы) и проверка выборочных URL / админки «301 редиректы».
+
 ---
 
 ## Структура на сервере (справка)

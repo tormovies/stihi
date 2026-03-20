@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Author;
 use App\Models\Page;
 use App\Models\Poem;
+use App\Models\PoemAnalysis;
 use App\Models\SeoPage;
 use App\Support\SlugNormalizer;
 use Illuminate\Http\RedirectResponse;
@@ -59,7 +60,20 @@ class SlugController extends Controller
                 'read_ids' => $readIds,
                 'count' => count($readIds),
             ] : null;
-            return view('author', ['author' => $author, 'poems' => $poems, 'readIds' => $readIds, 'read_debug' => $readDebug]);
+            $authorRandomAnalyses = PoemAnalysis::query()
+                ->with('poem.author')
+                ->whereHas('poem', fn ($q) => $q->where('author_id', $author->id)->whereNotNull('published_at'))
+                ->inRandomOrder()
+                ->limit(2)
+                ->get();
+
+            return view('author', [
+                'author' => $author,
+                'poems' => $poems,
+                'readIds' => $readIds,
+                'read_debug' => $readDebug,
+                'authorRandomAnalyses' => $authorRandomAnalyses,
+            ]);
         }
 
         $poem = Poem::with(['author', 'analysis', 'tags'])->where('slug', $slug)->whereNotNull('published_at')->first();

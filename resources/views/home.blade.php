@@ -12,26 +12,10 @@
         @endforeach
     </ul>
 
-    @if(isset($randomAnalyses) && $randomAnalyses->isNotEmpty())
-    <section class="home-analyses" aria-labelledby="home-analyses-title">
-        <h2 id="home-analyses-title" class="home-analyses__title">Анализы произведений</h2>
-        <ul class="home-analyses-grid">
-            @foreach($randomAnalyses as $analysis)
-                @php $poem = $analysis->poem; @endphp
-                @if($poem)
-                <li class="home-analysis-card">
-                    <a href="{{ url($poem->slug . '/analiz') }}" class="home-analysis-card__link">
-                        <span class="home-analysis-card__author">{{ e_decode($poem->author?->name ?? '') }}</span>
-                        <span class="home-analysis-card__title">{{ e_decode($poem->title) }}</span>
-                        @if($analysis->h1_description)
-                        <p class="home-analysis-card__excerpt">{{ Str::limit(strip_tags($analysis->h1_description), 120) }}</p>
-                        @endif
-                    </a>
-                </li>
-                @endif
-            @endforeach
-        </ul>
-    </section>
-    @endif
+    @include('partials.analysis-cards-section', [
+        'analyses' => $randomAnalyses ?? collect(),
+        'title' => 'Анализы произведений',
+        'headingId' => 'home-analyses-title',
+    ])
 </div>
 @endsection

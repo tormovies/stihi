@@ -58,7 +58,9 @@
                     </button>
                     <div class="site-burger-menu" id="burger-menu" aria-hidden="true">
                         <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Переключить тему">Тема</button>
-                        <a href="{{ route('favorites') }}" class="site-burger-link">Понравившееся</a>
+                        <a href="{{ route('tags.index') }}" class="site-burger-link">Стихи по темам</a>
+                        <a href="{{ route('favorites') }}" class="site-burger-link">Понравившееся Вам</a>
+                        <a href="{{ route('liked.by.all') }}" class="site-burger-link">Понравившееся Всем</a>
                         <button type="button" class="site-burger-clear-read" id="clear-read-btn" aria-label="Очистить список прочитанного">Очистить прочитанное</button>
                     </div>
                 </div>

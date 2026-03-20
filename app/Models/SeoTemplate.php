@@ -104,6 +104,9 @@ class SeoTemplate extends Model
         if ($type === 'favorites') {
             return 'Понравившееся';
         }
+        if ($type === 'liked_by_all') {
+            return 'Понравившееся всем';
+        }
         if ($type === 'tags_index') {
             return 'Теги стихов';
         }
@@ -150,6 +153,9 @@ class SeoTemplate extends Model
         if ($type === 'favorites') {
             return 'Понравившееся | Стихотворения поэтов классиков';
         }
+        if ($type === 'liked_by_all') {
+            return 'Понравившееся всем | Стихотворения поэтов классиков';
+        }
         if ($type === 'tags_index') {
             return 'Теги стихов по темам | Стихотворения';
         }
@@ -172,6 +178,9 @@ class SeoTemplate extends Model
     {
         if ($type === 'favorites') {
             return 'Стихи, отмеченные вами как понравившиеся. Читайте избранные произведения русских поэтов-классиков в одном месте.';
+        }
+        if ($type === 'liked_by_all') {
+            return 'Стихи с наибольшим числом отметок «Нравится». Читайте произведения, которые понравились читателям портала.';
         }
         if ($type === 'tags_index') {
             return 'Все теги и темы стихов: по темам, поводам и настроению. Выберите подборку и читайте стихи.';

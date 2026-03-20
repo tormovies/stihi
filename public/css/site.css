@@ -434,6 +434,72 @@ a:hover { color: var(--link-hover); }
   margin-top: 0.5rem;
 }
 
+/* Понравившееся всем — две колонки по 20 стихов на страницу */
+.liked-by-all-h1-desc { margin-top: 0.35rem; }
+.liked-by-all-empty {
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+.liked-by-all-cols {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem 1.5rem;
+  margin-top: 1rem;
+}
+@media (min-width: 640px) {
+  .liked-by-all-cols { grid-template-columns: 1fr 1fr; }
+}
+.liked-by-all-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.liked-by-all-item {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.35;
+}
+.liked-by-all-list .liked-by-all-item:last-child { border-bottom: none; }
+.liked-by-all-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 6px;
+  margin: 0 -0.25rem;
+  padding: 0.35rem 0.45rem;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.liked-by-all-link:hover {
+  background: var(--bg-hover, rgba(0, 0, 0, 0.05));
+  box-shadow: 0 0 0 1px var(--border);
+}
+.theme-dark .liked-by-all-link:hover {
+  background: var(--bg-hover, rgba(255, 255, 255, 0.06));
+}
+.liked-by-all-link:hover .liked-by-all-title { text-decoration: underline; color: var(--link); }
+.liked-by-all-title {
+  color: var(--link);
+  font-weight: 500;
+}
+.liked-by-all-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.liked-by-all-author {
+  color: var(--text-muted);
+}
+.liked-by-all-likes {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.liked-by-all-pagination { margin-top: 1.25rem; }
+
 .site-main {
   padding: 1.5rem 0 2rem;
 }
@@ -680,6 +746,11 @@ a:hover { color: var(--link-hover); }
   font-size: 0.9rem;
   color: var(--text-muted);
   line-height: 1.45;
+}
+/* Блок анализов под пагинацией на странице автора */
+.home-analyses.author-analyses-below-poems {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
 }
 
 /* Таблица из контента WordPress на главной — на мобильных скролл */
@@ -1275,6 +1346,28 @@ body.admin {
 .admin-sitemap-actions .admin-btn { min-width: 10rem; justify-content: center; }
 .admin-form-inline .admin-form-group { margin-bottom: 0.75rem; }
 .admin-form-inline .admin-form-actions { margin-top: 0.75rem; padding-top: 0.75rem; }
+
+/* 301 редиректы: поиск в одну строку */
+.admin-redirects-search-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+}
+.admin-redirects-search-form .admin-redirects-search-label {
+  margin: 0;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text);
+  white-space: nowrap;
+}
+.admin-redirects-search-form .admin-redirects-search-input {
+  flex: 1 1 12rem;
+  min-width: 10rem;
+  max-width: 22rem;
+}
+
 .admin-modal {
   position: fixed;
   inset: 0;

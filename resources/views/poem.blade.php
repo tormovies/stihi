@@ -37,8 +37,16 @@
     @else
         <p class="author-name">{{ e_decode($poem->author->name) }}@if($poem->relationLoaded('analysis') && $poem->analysis) — <a href="/{{ $poem->slug }}/analiz/" class="poem-analysis-link">Анализ стихотворения «{{ e_decode($poem->title) }}»</a>@endif</p>
     @endif
+    @php
+        $bodyRaw = \Illuminate\Support\Str::replace(['https://stihotvorenie.su', 'http://stihotvorenie.su'], '', $poem->body ?? '');
+        $poemBodyHasHtml = (bool) preg_match('/<[a-zA-Z][^>]*>/', $bodyRaw);
+    @endphp
     <div class="poem-body">
-        {!! \Illuminate\Support\Str::replace(['https://stihotvorenie.su', 'http://stihotvorenie.su'], '', $poem->body ?? '') !!}
+        @if($poemBodyHasHtml)
+            {!! $bodyRaw !!}
+        @else
+            {!! nl2br(e($bodyRaw), false) !!}
+        @endif
     </div>
     @if($poem->relationLoaded('tags') && $poem->tags->isNotEmpty())
     <div class="poem-tags">

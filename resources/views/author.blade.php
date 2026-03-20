@@ -32,6 +32,12 @@
         @endforeach
     </ul>
     <div class="pagination-wrap">{{ $poems->links() }}</div>
+    @include('partials.analysis-cards-section', [
+        'analyses' => $authorRandomAnalyses ?? collect(),
+        'title' => 'Последние анализы стихов ' . e_decode($author->name),
+        'headingId' => 'author-analyses-title',
+        'sectionClass' => 'author-analyses-below-poems',
+    ])
     @if(!empty($read_debug))
     <div class="read-debug" style="margin-top:1.5rem;padding:1rem;background:#f0f0f0;border:1px solid #ccc;font-family:monospace;font-size:12px;word-break:break-all;">
         <strong>Отладка «Прочитано» на странице автора (?debug)</strong><br>

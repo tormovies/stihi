@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(prepend: [
             \App\Http\Middleware\BlockedIps::class,
+            \App\Http\Middleware\UrlRedirectMiddleware::class,
         ]);
         $middleware->web(append: [
             \App\Http\Middleware\GzipResponse::class,

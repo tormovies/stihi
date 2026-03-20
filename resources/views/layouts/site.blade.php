@@ -47,7 +47,7 @@
   }
   if (clearRead) {
     clearRead.addEventListener('click', function() {
-      if (!confirm('Очистить список прочитанного?')) return;
+      if (!confirm('Это действие удалит все Ваши пометки Прочитано, во всех стихах. Продолжить?')) return;
       document.cookie = readCookieName + '=; path=/; max-age=0';
       if (menu) { menu.classList.remove('is-open'); menu.setAttribute('aria-hidden', 'true'); }
       if (burger) burger.setAttribute('aria-expanded', 'false');
