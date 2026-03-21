@@ -41,12 +41,22 @@
         $bodyRaw = \Illuminate\Support\Str::replace(['https://stihotvorenie.su', 'http://stihotvorenie.su'], '', $poem->body ?? '');
         $poemBodyHasHtml = (bool) preg_match('/<[a-zA-Z][^>]*>/', $bodyRaw);
     @endphp
-    <div class="poem-body">
-        @if($poemBodyHasHtml)
-            {!! $bodyRaw !!}
-        @else
-            {!! nl2br(e($bodyRaw), false) !!}
-        @endif
+    <div class="poem-body-wrap{{ auth()->check() ? ' poem-body-wrap--admin' : '' }}">
+        @auth
+        <a href="{{ route('admin.poems.edit', $poem) }}" class="poem-admin-edit" title="Редактировать в админке" aria-label="Редактировать стих в админке">
+            <svg class="poem-admin-edit__icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+        </a>
+        @endauth
+        <div class="poem-body">
+            @if($poemBodyHasHtml)
+                {!! $bodyRaw !!}
+            @else
+                {!! nl2br(e($bodyRaw), false) !!}
+            @endif
+        </div>
     </div>
     @if($poem->relationLoaded('tags') && $poem->tags->isNotEmpty())
     <div class="poem-tags">
