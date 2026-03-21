@@ -14,7 +14,7 @@
     'author' => [
         '@type' => 'Person',
         'name' => e_decode($poem->author->name),
-        'url' => url('/' . $poem->author->slug . '/'),
+        'url' => '/' . $poem->author->slug,
     ],
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
 </script>
@@ -24,7 +24,7 @@
 <div class="container poem">
     <nav class="breadcrumb">
         <a href="/">Главная</a> →
-        <a href="/{{ $poem->author->slug }}/">{{ e_decode($poem->author->name) }}</a> →
+        <a href="/{{ $poem->author->slug }}">{{ e_decode($poem->author->name) }}</a> →
         {{ e_decode($poem->title) }}
     </nav>
     <h1>{{ \App\Models\SeoTemplate::renderH1('poem', $poem) ?: e_decode($poem->title) }}</h1>
@@ -33,9 +33,9 @@
             $h1Desc = \App\Models\SeoTemplate::renderH1Description('poem', $poem);
             $h1Desc = str_replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $h1Desc);
         @endphp
-        <p class="author-name">{!! $h1Desc !!}@if($poem->relationLoaded('analysis') && $poem->analysis) — <a href="/{{ $poem->slug }}/analiz/" class="poem-analysis-link">Анализ стихотворения «{{ e_decode($poem->title) }}»</a>@endif</p>
+        <p class="author-name">{!! $h1Desc !!}@if($poem->relationLoaded('analysis') && $poem->analysis) — <a href="/{{ $poem->slug }}/analiz" class="poem-analysis-link">Анализ стихотворения «{{ e_decode($poem->title) }}»</a>@endif</p>
     @else
-        <p class="author-name">{{ e_decode($poem->author->name) }}@if($poem->relationLoaded('analysis') && $poem->analysis) — <a href="/{{ $poem->slug }}/analiz/" class="poem-analysis-link">Анализ стихотворения «{{ e_decode($poem->title) }}»</a>@endif</p>
+        <p class="author-name">{{ e_decode($poem->author->name) }}@if($poem->relationLoaded('analysis') && $poem->analysis) — <a href="/{{ $poem->slug }}/analiz" class="poem-analysis-link">Анализ стихотворения «{{ e_decode($poem->title) }}»</a>@endif</p>
     @endif
     @php
         $bodyRaw = \Illuminate\Support\Str::replace(['https://stihotvorenie.su', 'http://stihotvorenie.su'], '', $poem->body ?? '');
@@ -62,7 +62,7 @@
     <div class="poem-tags">
         <span class="poem-tags-label">Теги:</span>
         @foreach($poem->tags as $tag)
-            <a href="{{ url('/tegi/' . $tag->slug . '/') }}" class="poem-tag-link">{{ e_decode($tag->name) }}</a>
+            <a href="{{ url('/tegi/' . $tag->slug) }}" class="poem-tag-link">{{ e_decode($tag->name) }}</a>
         @endforeach
     </div>
     @endif
@@ -82,7 +82,7 @@
         <h2 class="poem-related-title">Другие стихи {{ e_decode($poem->author->name) }}</h2>
         <ul class="poems-list poem-related-list">
             @foreach($related_by_author as $p)
-            <li><a href="/{{ $p->slug }}/" class="list-row-link">{{ e_decode($p->title) }}@if($p->author)<span class="list-row-meta"> — {{ e_decode($p->author->name) }}</span>@endif</a></li>
+            <li><a href="/{{ $p->slug }}" class="list-row-link">{{ e_decode($p->title) }}@if($p->author)<span class="list-row-meta"> — {{ e_decode($p->author->name) }}</span>@endif</a></li>
             @endforeach
         </ul>
         @endif
@@ -90,7 +90,7 @@
         <h2 class="poem-related-title">Понравилось читателям</h2>
         <ul class="poems-list poem-related-list">
             @foreach($related_by_likes as $p)
-            <li><a href="/{{ $p->slug }}/" class="list-row-link">{{ e_decode($p->title) }}@if($p->author)<span class="list-row-meta"> — {{ e_decode($p->author->name) }}</span>@endif</a></li>
+            <li><a href="/{{ $p->slug }}" class="list-row-link">{{ e_decode($p->title) }}@if($p->author)<span class="list-row-meta"> — {{ e_decode($p->author->name) }}</span>@endif</a></li>
             @endforeach
         </ul>
         @endif
@@ -123,7 +123,7 @@
       if (hasSameOriginReferrer || hasHistory) {
         window.history.back();
       } else {
-        window.location.href = '{{ url('/' . $poem->author->slug . '/') }}';
+        window.location.href = '{{ url('/' . $poem->author->slug) }}';
       }
     });
   }

@@ -20,10 +20,10 @@
         <div class="favorites-by-authors">
             @foreach($poemsByAuthor as $group)
                 <section class="favorites-author-block" data-author-id="{{ $group['author']->id }}">
-                    <h2 class="favorites-author-name"><a href="/{{ $group['author']->slug }}/" class="favorites-author-link">{{ e_decode($group['author']->name) }}</a></h2>
+                    <h2 class="favorites-author-name"><a href="/{{ $group['author']->slug }}" class="favorites-author-link">{{ e_decode($group['author']->name) }}</a></h2>
                     @foreach($group['poems'] as $poem)
                         <p class="favorites-poem-row" data-poem-id="{{ $poem->id }}">
-                            <a href="/{{ $poem->slug }}/" class="favorites-poem-link">{{ e_decode($poem->title) }}</a>
+                            <a href="/{{ $poem->slug }}" class="favorites-poem-link">{{ e_decode($poem->title) }}</a>
                             <button type="button" class="favorites-remove-btn" data-poem-id="{{ $poem->id }}" aria-label="Убрать из понравившегося" title="Убрать из понравившегося">×</button>
                         </p>
                     @endforeach

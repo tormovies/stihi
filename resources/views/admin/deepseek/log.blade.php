@@ -58,12 +58,12 @@
                                 <ul class="admin-log-links">
                                     @foreach($log->updated_poems as $poem)
                                         <li>
-                                            <a href="{{ url('/' . $poem->slug . '/') }}" target="_blank" rel="noopener">Стих: {{ e($poem->title) }}</a>
+                                            <a href="{{ url('/' . $poem->slug) }}" target="_blank" rel="noopener">Стих: {{ e($poem->title) }}</a>
                                             @if(!empty($log->is_analysis))
-                                                — <a href="{{ url('/' . $poem->slug . '/analiz/') }}" target="_blank" rel="noopener">Анализ</a>
+                                                — <a href="{{ url('/' . $poem->slug . '/analiz') }}" target="_blank" rel="noopener">Анализ</a>
                                             @endif
                                             @if($poem->author)
-                                                — <a href="{{ url('/' . $poem->author->slug . '/') }}" target="_blank" rel="noopener">автор: {{ e($poem->author->name) }}</a>
+                                                — <a href="{{ url('/' . $poem->author->slug) }}" target="_blank" rel="noopener">автор: {{ e($poem->author->name) }}</a>
                                             @endif
                                             <a href="{{ route('admin.poems.edit', $poem) }}" class="admin-log-edit-link" title="Изменить в админке">✎</a>
                                         </li>
@@ -79,7 +79,7 @@
                                 <ul class="admin-log-links">
                                     @foreach($log->updated_authors as $author)
                                         <li>
-                                            <a href="{{ url('/' . $author->slug . '/') }}" target="_blank" rel="noopener">Автор: {{ e($author->name) }}</a>
+                                            <a href="{{ url('/' . $author->slug) }}" target="_blank" rel="noopener">Автор: {{ e($author->name) }}</a>
                                             <a href="{{ route('admin.authors.edit', $author) }}" class="admin-log-edit-link" title="Изменить в админке">✎</a>
                                         </li>
                                     @endforeach

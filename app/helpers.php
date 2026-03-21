@@ -15,6 +15,24 @@ if (! function_exists('markdown_to_html')) {
     }
 }
 
+if (! function_exists('public_site_url')) {
+    /**
+     * Абсолютный URL (для sitemap.xml и мест, где нужен полный URI). В шаблонах ссылок внутри сайта предпочтительны относительные пути.
+     *
+     * @param  string  $path  Путь без ведущего слэша, например "ahmatova" или "stih/analiz"
+     */
+    function public_site_url(string $path = ''): string
+    {
+        $base = rtrim((string) config('app.url'), '/');
+        $path = trim($path, '/');
+        if ($path === '') {
+            return $base;
+        }
+
+        return $base . '/' . $path;
+    }
+}
+
 if (! function_exists('e_decode')) {
     /**
      * Decode HTML entities to actual characters (e.g. &#8230; → …).

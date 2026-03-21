@@ -28,7 +28,7 @@
             <tbody>
                 @foreach($authors as $author)
                     <tr>
-                        <td><a href="{{ url('/' . $author->slug . '/') }}" target="_blank" rel="noopener" class="admin-slug-link"><code>{{ $author->slug }}</code></a></td>
+                        <td><a href="{{ url('/' . $author->slug) }}" target="_blank" rel="noopener" class="admin-slug-link"><code>{{ $author->slug }}</code></a></td>
                         <td>{{ $author->name }}</td>
                         <td>{{ $author->years_of_life ?? '—' }}</td>
                         <td>{{ $author->sort_order }}</td>

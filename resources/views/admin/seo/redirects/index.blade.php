@@ -18,7 +18,7 @@
 @endif
 
 <div class="admin-card">
-    <p class="admin-card-desc">Пути в базе <strong>без</strong> слэшей по краям. Редирект срабатывает для GET/HEAD; целевой URL на сайте открывается со слэшем в конце (как в канонических ссылках).</p>
+    <p class="admin-card-desc">Пути в базе <strong>без</strong> слэшей по краям. Редирект срабатывает для GET/HEAD; целевой URL — канонический путь без завершающего слэша (как во внутренних ссылках сайта).</p>
     <form method="GET" action="{{ route('admin.seo.redirects.index') }}" class="admin-redirects-search-form">
         <label for="q" class="admin-redirects-search-label">Поиск</label>
         <input type="text" id="q" name="q" value="{{ e($q) }}" placeholder="from или to" class="admin-input admin-redirects-search-input" autocomplete="off">

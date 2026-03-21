@@ -7,8 +7,8 @@
 <div class="container poem-analysis">
     <nav class="breadcrumb">
         <a href="/">Главная</a> →
-        <a href="/{{ $poem->author->slug }}/">{{ e_decode($poem->author->name) }}</a> →
-        <a href="/{{ $poem->slug }}/">{{ e_decode($poem->title) }}</a> →
+        <a href="/{{ $poem->author->slug }}">{{ e_decode($poem->author->name) }}</a> →
+        <a href="/{{ $poem->slug }}">{{ e_decode($poem->title) }}</a> →
         Анализ
     </nav>
     @php
@@ -23,6 +23,6 @@
     <div class="page-body analysis-body">
         {!! $analysis->analysis_html !!}
     </div>
-    <p style="margin-top: 1.5rem;"><a href="/{{ $poem->slug }}/">← К стихотворению</a></p>
+    <p style="margin-top: 1.5rem;"><a href="/{{ $poem->slug }}">← К стихотворению</a></p>
 </div>
 @endsection

@@ -57,7 +57,7 @@
                     <tr>
                         <td>{{ Str::limit($poem->title, 50) }}</td>
                         <td>{{ $poem->author->name }}</td>
-                        <td><a href="{{ url('/' . $poem->slug . '/') }}" target="_blank" rel="noopener" class="admin-slug-link"><code>{{ Str::limit($poem->slug, 30) }}</code></a></td>
+                        <td><a href="{{ url('/' . $poem->slug) }}" target="_blank" rel="noopener" class="admin-slug-link"><code>{{ Str::limit($poem->slug, 30) }}</code></a></td>
                         <td>{{ (int) ($poem->likes ?? 0) }}</td>
                         <td>{{ number_format($poem->body_length ?? 0, 0, ',', ' ') }}</td>
                         <td>{{ $poem->updated_at?->format('d.m.Y H:i') }}</td>

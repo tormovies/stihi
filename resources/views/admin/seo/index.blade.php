@@ -81,7 +81,7 @@
                     <tbody>
                         @forelse($seoPages as $sp)
                             <tr>
-                                <td><a href="{{ url('/' . $sp->path . '/') }}" target="_blank" rel="noopener" class="admin-slug-link"><code>{{ $sp->path }}</code></a></td>
+                                <td><a href="{{ url('/' . $sp->path) }}" target="_blank" rel="noopener" class="admin-slug-link"><code>{{ $sp->path }}</code></a></td>
                                 <td>{{ Str::limit($sp->meta_title, 40) }}</td>
                                 <td>{{ Str::limit($sp->meta_description, 50) }}</td>
                                 <td class="admin-cell-actions">

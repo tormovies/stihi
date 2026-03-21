@@ -25,7 +25,7 @@
   if (!input || !dropdown) return;
   var timer = null;
   var hideTimeout = null;
-  var baseUrl = '{{ url("/") }}';
+  var baseUrl = '{{ rtrim(config('app.url'), '/') }}';
   function hide() {
     clearTimeout(hideTimeout);
     hideTimeout = null;
@@ -56,7 +56,7 @@
     if (data.authors && data.authors.length) {
       html.push('<div class="site-search-group"><span class="site-search-group-title">Авторы</span><ul class="site-search-list">');
       data.authors.forEach(function(a) {
-        html.push('<li><a href="' + baseUrl + '/' + a.slug + '/" class="site-search-item">' + escapeHtml(a.name) + '</a></li>');
+        html.push('<li><a href="' + baseUrl + '/' + a.slug + '" class="site-search-item">' + escapeHtml(a.name) + '</a></li>');
       });
       html.push('</ul></div>');
     }
@@ -64,7 +64,7 @@
       html.push('<div class="site-search-group"><span class="site-search-group-title">Стихи</span><ul class="site-search-list">');
       data.poems.forEach(function(p) {
         var sub = p.author ? ' — <span class="site-search-item-meta">' + escapeHtml(p.author) + '</span>' : '';
-        html.push('<li><a href="' + baseUrl + '/' + p.slug + '/" class="site-search-item">' + escapeHtml(p.title) + sub + '</a></li>');
+        html.push('<li><a href="' + baseUrl + '/' + p.slug + '" class="site-search-item">' + escapeHtml(p.title) + sub + '</a></li>');
       });
       html.push('</ul></div>');
     }

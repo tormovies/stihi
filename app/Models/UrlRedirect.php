@@ -52,11 +52,14 @@ class UrlRedirect extends Model
         Cache::forget(self::CACHE_KEY);
     }
 
-    /** Абсолютный URL назначения (на сайте ссылки со слэшем в конце). */
+    /** Относительный путь назначения для редиректа (канон без завершающего слэша). */
     public static function targetUrl(string $toPath): string
     {
         $toPath = self::normalizePath($toPath);
+        if ($toPath === '') {
+            return '/';
+        }
 
-        return url('/' . $toPath . '/');
+        return '/' . $toPath;
     }
 }

@@ -28,7 +28,7 @@
     @endif
     <ul class="poems-list">
         @foreach($poems as $poem)
-            <li><a href="/{{ $poem->slug }}/" class="list-row-link {{ in_array($poem->id, $readIds ?? [], true) ? 'is-read' : '' }}">{{ e_decode($poem->title) }}</a></li>
+            <li><a href="/{{ $poem->slug }}" class="list-row-link {{ in_array($poem->id, $readIds ?? [], true) ? 'is-read' : '' }}">{{ e_decode($poem->title) }}</a></li>
         @endforeach
     </ul>
     <div class="pagination-wrap">{{ $poems->links() }}</div>

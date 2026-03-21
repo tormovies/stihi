@@ -14,7 +14,7 @@
     <ul class="tags-index-grid">
         @foreach($tags as $tag)
             <li class="tags-index-item">
-                <a href="{{ url('/tegi/' . $tag->slug . '/') }}" class="tags-index-link">
+                <a href="{{ url('/tegi/' . $tag->slug) }}" class="tags-index-link">
                     <span class="tags-index-name">{{ e_decode($tag->name) }}</span>
                     @php
                         $nc = (int) $tag->poems_count;

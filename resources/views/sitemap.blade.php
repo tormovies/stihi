@@ -1,7 +1,7 @@
 {{-- Старый шаблон, не используется (используются sitemap-index и sitemap-urlset). Без <? чтобы view:cache не ломал скомпилированный файл. --}}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-        <loc>{{ url('/') }}</loc>
+        <loc>{{ public_site_url('') }}</loc>
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
     </url>

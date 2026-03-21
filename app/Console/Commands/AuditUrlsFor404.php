@@ -32,7 +32,7 @@ class AuditUrlsFor404 extends Command
         foreach (Author::orderBy('id')->get() as $author) {
             $total++;
             if (!$this->slugMatchesRoute($author->slug)) {
-                $notFound[] = ['type' => 'Автор', 'url' => '/' . $author->slug . '/', 'slug_or_id' => $author->slug, 'name' => $author->name, 'id' => $author->id, 'reason' => 'slug не совпадает с маршрутом'];
+                $notFound[] = ['type' => 'Автор', 'url' => '/' . $author->slug, 'slug_or_id' => $author->slug, 'name' => $author->name, 'id' => $author->id, 'reason' => 'slug не совпадает с маршрутом'];
             }
         }
 
@@ -40,21 +40,21 @@ class AuditUrlsFor404 extends Command
         foreach ($poems as $poem) {
             $total++;
             if (!$this->slugMatchesRoute($poem->slug)) {
-                $notFound[] = ['type' => 'Стих', 'url' => '/' . $poem->slug . '/', 'slug_or_id' => $poem->slug, 'name' => $poem->title, 'id' => $poem->id, 'reason' => 'slug не совпадает с маршрутом'];
+                $notFound[] = ['type' => 'Стих', 'url' => '/' . $poem->slug, 'slug_or_id' => $poem->slug, 'name' => $poem->title, 'id' => $poem->id, 'reason' => 'slug не совпадает с маршрутом'];
             }
         }
 
         foreach (Page::where('is_published', true)->where('is_home', false)->orderBy('id')->get() as $page) {
             $total++;
             if (!$this->slugMatchesRoute($page->slug)) {
-                $notFound[] = ['type' => 'Страница', 'url' => '/' . $page->slug . '/', 'slug_or_id' => $page->slug, 'name' => $page->title, 'id' => $page->id, 'reason' => 'slug не совпадает с маршрутом'];
+                $notFound[] = ['type' => 'Страница', 'url' => '/' . $page->slug, 'slug_or_id' => $page->slug, 'name' => $page->title, 'id' => $page->id, 'reason' => 'slug не совпадает с маршрутом'];
             }
         }
 
         foreach (SeoPage::orderBy('id')->get() as $sp) {
             $total++;
             if (!$this->slugMatchesRoute($sp->path)) {
-                $notFound[] = ['type' => 'SEO-страница', 'url' => '/' . $sp->path . '/', 'slug_or_id' => $sp->path, 'name' => $sp->meta_title ?: $sp->path, 'id' => $sp->id, 'reason' => 'path не совпадает с маршрутом'];
+                $notFound[] = ['type' => 'SEO-страница', 'url' => '/' . $sp->path, 'slug_or_id' => $sp->path, 'name' => $sp->meta_title ?: $sp->path, 'id' => $sp->id, 'reason' => 'path не совпадает с маршрутом'];
             }
         }
 
@@ -71,7 +71,7 @@ class AuditUrlsFor404 extends Command
             if (!$this->slugMatchesRoute($author->slug)) {
                 continue;
             }
-            $path = '/' . $author->slug . '/';
+            $path = '/' . $author->slug;
             if ($this->getStatusCode($kernel, $baseUrl . $path) === 404) {
                 $notFound[] = ['type' => 'Автор', 'url' => $path, 'slug_or_id' => $author->slug, 'name' => $author->name, 'id' => $author->id, 'reason' => 'ответ 404'];
             }
@@ -81,7 +81,7 @@ class AuditUrlsFor404 extends Command
             if (!$this->slugMatchesRoute($page->slug)) {
                 continue;
             }
-            $path = '/' . $page->slug . '/';
+            $path = '/' . $page->slug;
             if ($this->getStatusCode($kernel, $baseUrl . $path) === 404) {
                 $notFound[] = ['type' => 'Страница', 'url' => $path, 'slug_or_id' => $page->slug, 'name' => $page->title, 'id' => $page->id, 'reason' => 'ответ 404'];
             }
@@ -91,7 +91,7 @@ class AuditUrlsFor404 extends Command
             if (!$this->slugMatchesRoute($sp->path)) {
                 continue;
             }
-            $path = '/' . $sp->path . '/';
+            $path = '/' . $sp->path;
             if ($this->getStatusCode($kernel, $baseUrl . $path) === 404) {
                 $notFound[] = ['type' => 'SEO-страница', 'url' => $path, 'slug_or_id' => $sp->path, 'name' => $sp->meta_title ?: $sp->path, 'id' => $sp->id, 'reason' => 'ответ 404'];
             }
@@ -102,7 +102,7 @@ class AuditUrlsFor404 extends Command
         $bar->start();
         foreach ($poems as $poem) {
             if ($this->slugMatchesRoute($poem->slug)) {
-                $path = '/' . $poem->slug . '/';
+                $path = '/' . $poem->slug;
                 if ($this->getStatusCode($kernel, $baseUrl . $path) === 404) {
                     $notFound[] = ['type' => 'Стих', 'url' => $path, 'slug_or_id' => $poem->slug, 'name' => $poem->title, 'id' => $poem->id, 'reason' => 'ответ 404'];
                 }

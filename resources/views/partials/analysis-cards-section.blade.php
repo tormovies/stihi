@@ -7,7 +7,7 @@
             @php $poem = $analysis->poem; @endphp
             @if($poem)
             <li class="home-analysis-card">
-                <a href="{{ url($poem->slug . '/analiz') }}" class="home-analysis-card__link">
+                <a href="/{{ $poem->slug }}/analiz" class="home-analysis-card__link">
                     <span class="home-analysis-card__author">{{ e_decode($poem->author?->name ?? '') }}</span>
                     <span class="home-analysis-card__title">{{ e_decode(trim((string) ($analysis->h1 ?? '')) !== '' ? (string) $analysis->h1 : (string) $poem->title) }}</span>
                     @if($analysis->h1_description)

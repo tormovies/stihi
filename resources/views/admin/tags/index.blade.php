@@ -55,7 +55,7 @@
                 @foreach($tags as $tag)
                     <tr>
                         <td>{{ $tag->name }}</td>
-                        <td><a href="{{ url('/tegi/' . $tag->slug . '/') }}" target="_blank" rel="noopener" class="admin-slug-link"><code>{{ $tag->slug }}</code></a></td>
+                        <td><a href="{{ url('/tegi/' . $tag->slug) }}" target="_blank" rel="noopener" class="admin-slug-link"><code>{{ $tag->slug }}</code></a></td>
                         <td>{{ $tag->poems_count ?? 0 }}</td>
                         <td>{{ $tag->sort_order }}</td>
                         <td>{{ $tag->updated_at?->format('d.m.Y H:i') }}</td>

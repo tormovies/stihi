@@ -60,7 +60,7 @@
                         <td class="admin-col-checkbox"><input type="checkbox" name="ids[]" value="{{ $a->id }}" class="analysis-row-cb"></td>
                         <td>
                             @if($poem)
-                                <a href="{{ url('/' . $poem->slug . '/') }}" target="_blank" rel="noopener">{{ Str::limit($poem->title, 50) }}</a>
+                                <a href="{{ url('/' . $poem->slug) }}" target="_blank" rel="noopener">{{ Str::limit($poem->title, 50) }}</a>
                             @else
                                 — (стих удалён)
                             @endif
@@ -69,7 +69,7 @@
                         <td>{{ $a->updated_at?->format('d.m.Y H:i') }}</td>
                         <td class="admin-cell-actions">
                             @if($poem)
-                                <a href="{{ url('/' . $poem->slug . '/analiz/') }}" target="_blank" rel="noopener" class="admin-btn-link">Анализ на сайте</a>
+                                <a href="{{ url('/' . $poem->slug . '/analiz') }}" target="_blank" rel="noopener" class="admin-btn-link">Анализ на сайте</a>
                             @endif
                             <button type="submit" form="poem-analyses-form" formaction="{{ route('admin.poem-analyses.destroy') }}" class="admin-btn-link admin-btn-danger" onclick="return setSingleIdAndConfirm({{ $a->id }}, this.form);" title="Удалить этот анализ">Удалить</button>
                         </td>

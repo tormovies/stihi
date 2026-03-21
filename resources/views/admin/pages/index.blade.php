@@ -28,7 +28,7 @@
             <tbody>
                 @foreach($pages as $page)
                     <tr>
-                        <td><a href="{{ url('/' . $page->slug . '/') }}" target="_blank" rel="noopener" class="admin-slug-link"><code>{{ $page->slug }}</code></a></td>
+                        <td><a href="{{ url('/' . $page->slug) }}" target="_blank" rel="noopener" class="admin-slug-link"><code>{{ $page->slug }}</code></a></td>
                         <td>{{ $page->title }}</td>
                         <td>{{ $page->is_home ? 'Да' : '—' }}</td>
                         <td>{{ $page->is_published ? 'Да' : 'Нет' }}</td>

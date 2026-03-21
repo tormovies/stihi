@@ -139,7 +139,7 @@ class SitemapController extends Controller
         $entries = [];
 
         $entries[] = [
-            'loc' => url('/'),
+            'loc' => public_site_url(''),
             'lastmod' => null,
             'changefreq' => 'weekly',
             'priority' => '1.0',
@@ -147,7 +147,7 @@ class SitemapController extends Controller
 
         foreach (Author::orderBy('name')->select('slug')->cursor() as $author) {
             $entries[] = [
-                'loc' => url($author->slug),
+                'loc' => public_site_url($author->slug),
                 'lastmod' => null,
                 'changefreq' => 'weekly',
                 'priority' => '0.8',
@@ -156,7 +156,7 @@ class SitemapController extends Controller
 
         foreach (Poem::whereNotNull('published_at')->orderBy('updated_at', 'desc')->select('slug', 'updated_at', 'published_at')->cursor() as $poem) {
             $entries[] = [
-                'loc' => url($poem->slug),
+                'loc' => public_site_url($poem->slug),
                 'lastmod' => $poem->updated_at?->toW3cString() ?? $poem->published_at?->toW3cString(),
                 'changefreq' => 'monthly',
                 'priority' => '0.6',
@@ -171,7 +171,7 @@ class SitemapController extends Controller
             $poem = $analysis->poem;
             if ($poem && $poem->slug) {
                 $entries[] = [
-                    'loc' => url($poem->slug . '/analiz'),
+                    'loc' => public_site_url($poem->slug . '/analiz'),
                     'lastmod' => $analysis->updated_at?->toW3cString(),
                     'changefreq' => 'monthly',
                     'priority' => '0.5',
@@ -181,7 +181,7 @@ class SitemapController extends Controller
 
         foreach (Page::where('is_published', true)->where('is_home', false)->select('slug')->cursor() as $page) {
             $entries[] = [
-                'loc' => url($page->slug),
+                'loc' => public_site_url($page->slug),
                 'lastmod' => null,
                 'changefreq' => 'monthly',
                 'priority' => '0.5',

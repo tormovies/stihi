@@ -36,11 +36,11 @@ class CheckSeoViaWeb extends Command
         // Авторы
         $authors = Author::inRandomOrder()->limit((int) $this->option('authors'))->get();
         foreach ($authors as $author) {
-            $url = $baseUrl . '/' . $author->slug . '/';
-            $this->info('Запрос: /' . $author->slug . '/');
+            $url = $baseUrl . '/' . $author->slug;
+            $this->info('Запрос: /' . $author->slug);
             $html = $this->fetch($kernel, $url);
             $results[] = [
-                'url' => '/' . $author->slug . '/',
+                'url' => '/' . $author->slug,
                 'type' => 'Автор: ' . $author->name,
                 'title' => $this->extractTitle($html),
                 'meta_description' => $this->extractMetaDescription($html),
@@ -52,11 +52,11 @@ class CheckSeoViaWeb extends Command
         // Стихи
         $poems = Poem::with('author')->whereNotNull('published_at')->inRandomOrder()->limit((int) $this->option('poems'))->get();
         foreach ($poems as $poem) {
-            $url = $baseUrl . '/' . $poem->slug . '/';
-            $this->info('Запрос: /' . $poem->slug . '/');
+            $url = $baseUrl . '/' . $poem->slug;
+            $this->info('Запрос: /' . $poem->slug);
             $html = $this->fetch($kernel, $url);
             $results[] = [
-                'url' => '/' . $poem->slug . '/',
+                'url' => '/' . $poem->slug,
                 'type' => 'Стих: ' . mb_substr($poem->title, 0, 40) . (mb_strlen($poem->title) > 40 ? '…' : ''),
                 'title' => $this->extractTitle($html),
                 'meta_description' => $this->extractMetaDescription($html),
@@ -68,11 +68,11 @@ class CheckSeoViaWeb extends Command
         // Страницы (не главная)
         $pages = Page::where('is_published', true)->where('is_home', false)->inRandomOrder()->limit((int) $this->option('pages'))->get();
         foreach ($pages as $page) {
-            $url = $baseUrl . '/' . $page->slug . '/';
-            $this->info('Запрос: /' . $page->slug . '/');
+            $url = $baseUrl . '/' . $page->slug;
+            $this->info('Запрос: /' . $page->slug);
             $html = $this->fetch($kernel, $url);
             $results[] = [
-                'url' => '/' . $page->slug . '/',
+                'url' => '/' . $page->slug,
                 'type' => 'Страница: ' . mb_substr($page->title, 0, 40),
                 'title' => $this->extractTitle($html),
                 'meta_description' => $this->extractMetaDescription($html),

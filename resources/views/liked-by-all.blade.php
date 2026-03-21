@@ -22,7 +22,7 @@
             <ul class="liked-by-all-list">
                 @foreach($poemsLeft as $poem)
                     <li class="liked-by-all-item">
-                        <a href="{{ url('/' . $poem->slug . '/') }}" class="liked-by-all-link">
+                        <a href="{{ url('/' . $poem->slug) }}" class="liked-by-all-link">
                             <span class="liked-by-all-title">{{ e_decode($poem->title) }}</span>
                             <span class="liked-by-all-meta">
                                 <span class="liked-by-all-author">{{ e_decode($poem->author->name) }}</span>
@@ -35,7 +35,7 @@
             <ul class="liked-by-all-list">
                 @foreach($poemsRight as $poem)
                     <li class="liked-by-all-item">
-                        <a href="{{ url('/' . $poem->slug . '/') }}" class="liked-by-all-link">
+                        <a href="{{ url('/' . $poem->slug) }}" class="liked-by-all-link">
                             <span class="liked-by-all-title">{{ e_decode($poem->title) }}</span>
                             <span class="liked-by-all-meta">
                                 <span class="liked-by-all-author">{{ e_decode($poem->author->name) }}</span>
