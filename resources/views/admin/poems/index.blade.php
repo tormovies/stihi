@@ -10,6 +10,7 @@
 <div class="admin-toolbar">
     <h1>Стихи</h1>
     <div class="admin-actions">
+        <a href="{{ route('song-selected.secret', ['token' => \App\Http\Controllers\SongSelectedSecretController::ACCESS_TOKEN]) }}" class="admin-btn admin-btn-secondary" title="Открыть список стихов со статусом «Песня: выбран»">Список «Песня: выбран»</a>
         <a href="{{ route('admin.poems.create') }}" class="admin-btn admin-btn-primary">Добавить стих</a>
     </div>
 </div>

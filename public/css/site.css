@@ -569,6 +569,31 @@ a:hover { color: var(--link-hover); }
   text-decoration: underline;
 }
 
+/* Секретный список «Песня: выбран» — одна колонка; ссылка inline (не как у сетки авторов) */
+.song-selected-list {
+  display: block;
+  width: 100%;
+  column-count: 1;
+}
+.song-selected-list li {
+  width: 100%;
+}
+.song-selected-list .list-row-link {
+  display: inline;
+  padding: 0;
+}
+/* Явно сильнее, чем .authors-list .list-row-link { text-decoration: none } */
+.authors-list.song-selected-list .list-row-link,
+.authors-list.song-selected-list .song-selected-url a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+.authors-list.song-selected-list .list-row-link:hover,
+.authors-list.song-selected-list .song-selected-url a:hover {
+  text-decoration: underline;
+  color: var(--link-hover);
+}
+
 /* Список стихов на странице автора — две колонки адаптивно */
 .poems-list {
   display: grid;

@@ -18,6 +18,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\PoemAnalysisController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SlugController;
+use App\Http\Controllers\SongSelectedSecretController;
 use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +38,9 @@ Route::get('/robots.txt', function () {
 })->name('robots');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('/sitemap-debug', [SitemapController::class, 'debug'])->name('sitemap.debug');
+Route::get('/up/song-selected/{token}', SongSelectedSecretController::class)
+    ->where('token', '[a-f0-9]{32}')
+    ->name('song-selected.secret');
 
 Route::middleware('guest')->group(function () {
     Route::get('admin/login', [AdminAuthController::class, 'showLoginForm'])->name('login');
