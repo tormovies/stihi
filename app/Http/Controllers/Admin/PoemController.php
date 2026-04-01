@@ -8,6 +8,7 @@ use App\Models\Poem;
 use App\Models\Tag;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PoemController extends Controller
@@ -44,6 +45,12 @@ class PoemController extends Controller
         }
         if ($request->filled('tag_id') && is_numeric($request->tag_id)) {
             $query->whereHas('tags', fn ($q) => $q->where('tags.id', (int) $request->tag_id));
+        }
+        if ($request->filled('song_status')) {
+            $allowedSong = array_keys(Poem::songStatusOptions());
+            if (in_array($request->song_status, $allowedSong, true)) {
+                $query->where('song_status', $request->song_status);
+            }
         }
         $poems = $query->paginate(20)->withQueryString();
         $authors = Author::orderBy('name')->get();
@@ -85,6 +92,10 @@ class PoemController extends Controller
 
     public function update(Request $request, Poem $poem): RedirectResponse
     {
+        $songUrlRaw = $request->input('song_url');
+        $songUrl = is_string($songUrlRaw) && trim($songUrlRaw) !== '' ? trim($songUrlRaw) : null;
+        $request->merge(['song_url' => $songUrl]);
+
         $data = $request->validate([
             'author_id' => 'required|exists:authors,id',
             'slug' => 'required|string|max:255|unique:poems,slug,' . $poem->id,
@@ -95,6 +106,7 @@ class PoemController extends Controller
             'h1' => 'nullable|string|max:255',
             'h1_description' => 'nullable|string|max:500',
             'published_at' => 'nullable|date',
+            'song_url' => ['nullable', 'string', 'max:2048', 'url'],
             'tag_ids' => 'nullable|array',
             'tag_ids.*' => 'exists:tags,id',
         ]);
@@ -107,5 +119,18 @@ class PoemController extends Controller
     {
         $poem->delete();
         return redirect()->route('admin.poems.index')->with('success', 'Стих удалён.');
+    }
+
+    public function updateSongStatus(Request $request, Poem $poem): RedirectResponse
+    {
+        $data = $request->validate([
+            'song_status' => ['required', Rule::in(array_keys(Poem::songStatusOptions()))],
+        ]);
+
+        $poem->update([
+            'song_status' => $data['song_status'],
+        ]);
+
+        return back()->with('success', 'Статус песни обновлён.');
     }
 }

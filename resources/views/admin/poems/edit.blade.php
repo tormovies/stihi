@@ -39,6 +39,11 @@
             <label for="body">Текст стихотворения</label>
             <textarea id="body" name="body" rows="15" class="w-full">{{ old('body', $poem->body) }}</textarea>
         </div>
+        <div class="admin-form-group">
+            <label for="song_url">URL песни <span class="optional">(необязательно)</span></label>
+            <input type="url" id="song_url" name="song_url" value="{{ old('song_url', $poem->song_url) }}" placeholder="https://…" inputmode="url" autocomplete="off">
+            @error('song_url')<p class="admin-form-error">{{ $message }}</p>@enderror
+        </div>
         <details class="admin-spoiler">
             <summary>SEO (для этого стиха)</summary>
             <div class="admin-spoiler-body">

@@ -1688,6 +1688,123 @@ body.admin {
   display: inline;
 }
 .admin table.table .admin-cell-actions form { margin-left: 0.5rem; }
+.admin-song-status-form { margin: 0; }
+.admin-song-status-current {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-card);
+  cursor: pointer;
+}
+.admin-song-status-current:hover { background: var(--bg); }
+.admin-song-dot {
+  display: block;
+  width: 0.78rem;
+  height: 0.78rem;
+  border-radius: 999px;
+  margin: 0;
+  flex: 0 0 auto;
+}
+.admin-song-dot.is-none {
+  display: inline-block;
+  width: 0.78rem;
+  height: 0.78rem;
+  border-radius: 0;
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1;
+  text-align: center;
+}
+.admin-song-dot.is-none::before { content: "-"; }
+.admin-song-dot.is-has { background: #16a34a; }
+.admin-song-dot.is-selected { background: #facc15; }
+.admin-song-dot.is-not_suitable { background: #dc2626; }
+.admin-song-modal[hidden] { display: none; }
+.admin-song-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+}
+.admin-song-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+.admin-song-modal-card {
+  position: relative;
+  width: min(92vw, 340px);
+  margin: 12vh auto 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 10px 30px var(--shadow);
+}
+.admin-song-modal-card h3 { margin: 0 0 0.8rem; }
+.admin-song-modal-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.admin-song-modal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text);
+  padding: 0.45rem 0.55rem;
+  cursor: pointer;
+}
+.admin-song-modal-btn.is-active {
+  border-color: var(--accent);
+  background: var(--bg);
+}
+.admin-song-modal-actions {
+  margin-top: 0.9rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.admin-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--accent);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.admin-icon-btn svg {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+}
+.admin-icon-btn:hover {
+  background: var(--bg);
+  text-decoration: none;
+}
+.admin-icon-btn-danger {
+  color: #b91c1c;
+  border-color: rgba(185, 28, 28, 0.4);
+}
+.admin-icon-btn-danger:hover { background: rgba(185, 28, 28, 0.12); }
+.theme-dark .admin-icon-btn-danger { color: #f87171; }
 .admin table.table button {
   padding: 0.35rem 0.65rem;
   font-size: 0.85rem;
@@ -1706,6 +1823,49 @@ body.admin {
 .admin table.table button.admin-btn-delete:hover { background: rgba(185, 28, 28, 0.12); }
 .theme-dark .admin table.table button.admin-btn-delete { color: #f87171; }
 
+/* Иконки в ячейке: ссылка и button — один размер (общее правило table button перебивает padding) */
+.admin table.table .admin-cell-actions a.admin-icon-btn {
+  /* перебивает .admin-cell-actions a { display: inline } — иначе рамка/размер как у кнопки не совпадают */
+  display: inline-flex;
+}
+.admin table.table a.admin-icon-btn,
+.admin table.table button.admin-icon-btn {
+  padding: 0;
+  width: 1.9rem;
+  height: 1.9rem;
+  min-width: 1.9rem;
+  min-height: 1.9rem;
+  box-sizing: border-box;
+  font-size: 0;
+  line-height: 0;
+  background: var(--bg-card);
+  vertical-align: middle;
+}
+/* «Редактировать»: явная обводка (как у danger-кнопки по контрасту, не сливается с фоном) */
+.admin table.table a.admin-icon-btn {
+  border: 1px solid rgba(107, 68, 35, 0.38);
+}
+.theme-dark .admin table.table a.admin-icon-btn {
+  border-color: rgba(201, 169, 98, 0.45);
+}
+.admin table.table button.admin-icon-btn:not(.admin-icon-btn-danger) {
+  border: 1px solid var(--border);
+}
+.admin table.table button.admin-icon-btn:hover {
+  background: var(--bg);
+}
+.admin table.table button.admin-icon-btn.admin-icon-btn-danger {
+  color: #b91c1c;
+  background: transparent;
+  border: 1px solid rgba(185, 28, 28, 0.4);
+}
+.admin table.table button.admin-icon-btn.admin-icon-btn-danger:hover {
+  background: rgba(185, 28, 28, 0.12);
+}
+.theme-dark .admin table.table button.admin-icon-btn.admin-icon-btn-danger {
+  color: #f87171;
+}
+
 /* Forms */
 .admin-form .admin-form-group {
   margin-bottom: 1.25rem;
@@ -1720,6 +1880,7 @@ body.admin {
 .admin-form .admin-form-group label .optional { font-weight: 400; color: var(--text-muted); }
 .admin-form .admin-form-group input[type="text"],
 .admin-form .admin-form-group input[type="email"],
+.admin-form .admin-form-group input[type="url"],
 .admin-form .admin-form-group input[type="number"],
 .admin-form .admin-form-group input[type="datetime-local"],
 .admin-form .admin-form-group select,

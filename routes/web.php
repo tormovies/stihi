@@ -47,6 +47,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::post('logout', [AdminAuthController::class, 'logout'])->name('logout');
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('authors', AdminAuthorController::class)->except('show');
+    Route::patch('poems/{poem}/song-status', [AdminPoemController::class, 'updateSongStatus'])->name('poems.song-status');
     Route::resource('poems', AdminPoemController::class)->except('show');
     Route::get('poem-analyses', [AdminPoemAnalysisController::class, 'index'])->name('poem-analyses.index');
     Route::post('poem-analyses/destroy', [AdminPoemAnalysisController::class, 'destroy'])->name('poem-analyses.destroy');
