@@ -22,7 +22,6 @@ class SongSelectedSecretController extends Controller
 
         $poems = Poem::query()
             ->where('song_status', Poem::SONG_STATUS_SELECTED)
-            ->whereNotNull('published_at')
             ->with('author')
             ->orderBy('title')
             ->get();

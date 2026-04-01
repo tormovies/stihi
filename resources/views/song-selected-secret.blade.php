@@ -12,7 +12,7 @@
     <h1>Стихи: статус «Песня» — выбран</h1>
     <p class="page-tagline">Всего: {{ $poems->count() }}</p>
     @if($poems->isEmpty())
-        <p>Нет опубликованных стихов с этим статусом.</p>
+        <p>Нет стихов с этим статусом.</p>
     @else
         <ul class="authors-list song-selected-list">
             @foreach($poems as $poem)
