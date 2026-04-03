@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -26,6 +27,14 @@ class Poem extends Model
         return [
             'published_at' => 'datetime',
         ];
+    }
+
+    protected function title(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value) => $value === null || $value === '' ? $value : normalize_poem_title($value),
+            set: fn (mixed $value) => normalize_poem_title((string) $value),
+        );
     }
 
     public function author(): BelongsTo

@@ -45,3 +45,19 @@ if (! function_exists('e_decode')) {
         return html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 }
+
+if (! function_exists('normalize_poem_title')) {
+    /**
+     * В названии стиха: entity/символ многоточия → три точки ASCII (...).
+     */
+    function normalize_poem_title(string $title): string
+    {
+        $title = str_replace(
+            ['&#8230;', '&#x2026;', '&#X2026;', '&hellip;'],
+            '...',
+            $title
+        );
+
+        return str_replace('…', '...', $title);
+    }
+}
