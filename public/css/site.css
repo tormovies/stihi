@@ -1750,6 +1750,7 @@ body.admin {
 .admin-song-dot.is-has { background: #16a34a; }
 .admin-song-dot.is-selected { background: #facc15; }
 .admin-song-dot.is-not_suitable { background: #dc2626; }
+.admin-song-dot.is-complex { background: #38bdf8; }
 .admin-song-modal[hidden] { display: none; }
 .admin-song-modal {
   position: fixed;

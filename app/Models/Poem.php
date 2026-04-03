@@ -13,6 +13,7 @@ class Poem extends Model
     public const SONG_STATUS_HAS = 'has';
     public const SONG_STATUS_SELECTED = 'selected';
     public const SONG_STATUS_NOT_SUITABLE = 'not_suitable';
+    public const SONG_STATUS_COMPLEX = 'complex';
 
     protected $fillable = [
         'author_id', 'slug', 'title', 'body', 'body_length',
@@ -49,6 +50,7 @@ class Poem extends Model
             self::SONG_STATUS_HAS => 'Есть',
             self::SONG_STATUS_SELECTED => 'Выбран',
             self::SONG_STATUS_NOT_SUITABLE => 'Не подходит',
+            self::SONG_STATUS_COMPLEX => 'Сложный',
         ];
     }
 }

@@ -136,6 +136,10 @@
                 <span class="admin-song-dot is-{{ \App\Models\Poem::SONG_STATUS_NOT_SUITABLE }}"></span>
                 <span>Не подходит</span>
             </button>
+            <button type="button" class="admin-song-modal-btn" data-status-value="{{ \App\Models\Poem::SONG_STATUS_COMPLEX }}" title="Сложный">
+                <span class="admin-song-dot is-{{ \App\Models\Poem::SONG_STATUS_COMPLEX }}"></span>
+                <span>Сложный</span>
+            </button>
         </div>
         <div class="admin-song-modal-actions">
             <button type="button" class="admin-btn admin-btn-secondary" data-song-status-close>Отмена</button>
