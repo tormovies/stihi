@@ -10,7 +10,7 @@
 <div class="admin-toolbar">
     <h1>Стихи</h1>
     <div class="admin-actions">
-        <a href="{{ route('song-selected.secret', ['token' => \App\Http\Controllers\SongSelectedSecretController::ACCESS_TOKEN]) }}" class="admin-btn admin-btn-secondary" title="Открыть список стихов со статусом «Песня: выбран»">Список «Песня: выбран»</a>
+        <a href="{{ route('song-selected.secret', ['token' => \App\Http\Controllers\SongSelectedSecretController::ACCESS_TOKEN]) }}" class="admin-btn admin-btn-secondary" title="Открыть список стихов со статусом «Песня: Николай»">Список «Песня: Николай»</a>
         <a href="{{ route('admin.poems.create') }}" class="admin-btn admin-btn-primary">Добавить стих</a>
     </div>
 </div>
@@ -120,26 +120,12 @@
     <div class="admin-song-modal-card">
         <h3>Статус “Песня”</h3>
         <div class="admin-song-modal-options">
-            <button type="button" class="admin-song-modal-btn" data-status-value="{{ \App\Models\Poem::SONG_STATUS_NONE }}" title="Нет">
-                <span class="admin-song-dot is-{{ \App\Models\Poem::SONG_STATUS_NONE }}"></span>
-                <span>Нет</span>
+            @foreach(\App\Models\Poem::songStatusOptions() as $value => $label)
+            <button type="button" class="admin-song-modal-btn" data-status-value="{{ $value }}" title="{{ $label }}">
+                <span class="admin-song-dot is-{{ $value }}"></span>
+                <span>{{ $label }}</span>
             </button>
-            <button type="button" class="admin-song-modal-btn" data-status-value="{{ \App\Models\Poem::SONG_STATUS_HAS }}" title="Есть">
-                <span class="admin-song-dot is-{{ \App\Models\Poem::SONG_STATUS_HAS }}"></span>
-                <span>Есть</span>
-            </button>
-            <button type="button" class="admin-song-modal-btn" data-status-value="{{ \App\Models\Poem::SONG_STATUS_SELECTED }}" title="Выбран">
-                <span class="admin-song-dot is-{{ \App\Models\Poem::SONG_STATUS_SELECTED }}"></span>
-                <span>Выбран</span>
-            </button>
-            <button type="button" class="admin-song-modal-btn" data-status-value="{{ \App\Models\Poem::SONG_STATUS_NOT_SUITABLE }}" title="Не подходит">
-                <span class="admin-song-dot is-{{ \App\Models\Poem::SONG_STATUS_NOT_SUITABLE }}"></span>
-                <span>Не подходит</span>
-            </button>
-            <button type="button" class="admin-song-modal-btn" data-status-value="{{ \App\Models\Poem::SONG_STATUS_COMPLEX }}" title="Сложный">
-                <span class="admin-song-dot is-{{ \App\Models\Poem::SONG_STATUS_COMPLEX }}"></span>
-                <span>Сложный</span>
-            </button>
+            @endforeach
         </div>
         <div class="admin-song-modal-actions">
             <button type="button" class="admin-btn admin-btn-secondary" data-song-status-close>Отмена</button>

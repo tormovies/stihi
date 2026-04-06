@@ -1,6 +1,6 @@
 @extends('layouts.site')
 
-@section('title', 'Выбранные песни (служебно)')
+@section('title', 'Песня: Николай (служебно)')
 @section('meta_description', 'Служебный список')
 
 @push('meta')
@@ -9,7 +9,7 @@
 
 @section('content')
 <div class="container">
-    <h1>Стихи: статус «Песня» — выбран</h1>
+    <h1>Стихи: статус «Песня» — Николай</h1>
     <p class="page-tagline">Всего: {{ $poems->count() }}</p>
     @if($poems->isEmpty())
         <p>Нет стихов с этим статусом.</p>

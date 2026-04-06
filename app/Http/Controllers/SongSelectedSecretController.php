@@ -11,7 +11,7 @@ class SongSelectedSecretController extends Controller
     public const ACCESS_TOKEN = 'a8f3e91c2d7b4056e1f8c4a9b6d2e0f7';
 
     /**
-     * Секретная страница: стихи со статусом «Песня» = выбран.
+     * Секретная страница: стихи со статусом «Песня» = Николай (значение в БД: selected).
      * URL: /up/song-selected/{ACCESS_TOKEN}
      */
     public function __invoke(string $token): View

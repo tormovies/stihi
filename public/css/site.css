@@ -1751,6 +1751,8 @@ body.admin {
 .admin-song-dot.is-selected { background: #facc15; }
 .admin-song-dot.is-not_suitable { background: #dc2626; }
 .admin-song-dot.is-complex { background: #38bdf8; }
+.admin-song-dot.is-yura { background: #ea580c; }
+.admin-song-dot.is-awaiting { background: #ec4899; }
 .admin-song-modal[hidden] { display: none; }
 .admin-song-modal {
   position: fixed;

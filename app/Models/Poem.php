@@ -15,6 +15,8 @@ class Poem extends Model
     public const SONG_STATUS_SELECTED = 'selected';
     public const SONG_STATUS_NOT_SUITABLE = 'not_suitable';
     public const SONG_STATUS_COMPLEX = 'complex';
+    public const SONG_STATUS_YURA = 'yura';
+    public const SONG_STATUS_AWAITING = 'awaiting';
 
     protected $fillable = [
         'author_id', 'slug', 'title', 'body', 'body_length',
@@ -57,9 +59,11 @@ class Poem extends Model
         return [
             self::SONG_STATUS_NONE => 'Нет',
             self::SONG_STATUS_HAS => 'Есть',
-            self::SONG_STATUS_SELECTED => 'Выбран',
-            self::SONG_STATUS_NOT_SUITABLE => 'Не подходит',
+            self::SONG_STATUS_AWAITING => 'Ожидает',
+            self::SONG_STATUS_SELECTED => 'Николай',
+            self::SONG_STATUS_YURA => 'Юра',
             self::SONG_STATUS_COMPLEX => 'Сложный',
+            self::SONG_STATUS_NOT_SUITABLE => 'Не подходит',
         ];
     }
 }
