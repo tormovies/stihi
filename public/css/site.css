@@ -1749,7 +1749,20 @@ body.admin {
 .admin-song-dot.is-none::before { content: "-"; }
 .admin-song-dot.is-has { background: #16a34a; }
 .admin-song-dot.is-selected { background: #facc15; }
-.admin-song-dot.is-not_suitable { background: #dc2626; }
+.admin-song-dot.is-not_suitable {
+  background: transparent;
+  border-radius: 0;
+  display: inline-block;
+  width: 0.78rem;
+  height: 0.78rem;
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1;
+  text-align: center;
+}
+.admin-song-dot.is-not_suitable::before { content: "\2715"; }
+.theme-dark .admin-song-dot.is-not_suitable { color: #f87171; }
 .admin-song-dot.is-complex { background: #38bdf8; }
 .admin-song-dot.is-yura { background: #ea580c; }
 .admin-song-dot.is-awaiting { background: #ec4899; }
