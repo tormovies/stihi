@@ -68,7 +68,10 @@
                         <td><a href="{{ url('/' . $poem->slug) }}" target="_blank" rel="noopener" class="admin-slug-link"><code>{{ Str::limit($poem->slug, 30) }}</code></a></td>
                         <td>{{ (int) ($poem->likes ?? 0) }}</td>
                         <td>
-                            @php($currentSongStatus = $poem->song_status ?? \App\Models\Poem::SONG_STATUS_NONE)
+                            @php
+                                $currentSongStatus = $poem->song_status ?? \App\Models\Poem::SONG_STATUS_NONE;
+                                $songStatusLabel = \App\Models\Poem::songStatusOptions()[$currentSongStatus] ?? $currentSongStatus;
+                            @endphp
                             <form action="{{ route('admin.poems.song-status', $poem) }}" method="POST" class="admin-song-status-form">
                                 @csrf
                                 @method('PATCH')
@@ -78,8 +81,8 @@
                                     class="admin-song-status-current"
                                     data-song-status-open
                                     data-current-status="{{ $currentSongStatus }}"
-                                    title="Сменить статус песни"
-                                    aria-label="Сменить статус песни"
+                                    title="{{ $songStatusLabel }}"
+                                    aria-label="{{ $songStatusLabel }}. Нажмите, чтобы сменить"
                                 >
                                     <span class="admin-song-dot is-{{ $currentSongStatus }}"></span>
                                 </button>
