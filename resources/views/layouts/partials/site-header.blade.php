@@ -40,7 +40,7 @@
     @stack('og_meta')
     @stack('json_ld')
     @if(!empty($counterCode) && empty($skipCounter))
-{!! $counterCode !!}
+    <script type="application/json" id="counter-code-json">{!! json_encode($counterCode, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) !!}</script>
     @endif
 </head>
 <body id="top">

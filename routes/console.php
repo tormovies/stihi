@@ -82,3 +82,8 @@ if ($cronRunPoemTags !== 'off' && in_array($cronRunPoemTags, ['1', '2', '3', '4'
         default => null,
     };
 }
+
+// Ежедневная очистка логов запросов старше 90 дней.
+Schedule::command('logs:cleanup-requests --days=90')->dailyAt('03:25');
+// Ежедневная очистка журнала согласий cookie старше 730 дней.
+Schedule::command('consents:cleanup --days=730')->dailyAt('03:35');

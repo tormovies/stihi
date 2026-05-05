@@ -7,6 +7,157 @@
 @include('layouts.partials.site-footer')
     <script>
 (function() {
+  var CONSENT_KEY = 'stihotvorenie-cookie-consent-v1';
+  var CLIENT_ID_KEY = 'stihotvorenie-consent-client-id-v1';
+  var POLICY_VERSION = '1.1';
+  var banner = document.getElementById('cookie-consent');
+  var backdrop = document.getElementById('cookie-consent-backdrop');
+  var acceptBtn = document.getElementById('cookie-accept-all');
+  var rejectBtn = document.getElementById('cookie-reject-analytics');
+  var openSettingsBtn = document.getElementById('open-cookie-settings');
+  var counterJson = document.getElementById('counter-code-json');
+  var csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+  function readConsent() {
+    try {
+      var raw = localStorage.getItem(CONSENT_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      return parsed;
+    } catch (e) {
+      return null;
+    }
+  }
+  function writeConsent(analytics) {
+    var payload = {
+      version: POLICY_VERSION,
+      necessary: true,
+      analytics: !!analytics,
+      ts: Date.now()
+    };
+    try { localStorage.setItem(CONSENT_KEY, JSON.stringify(payload)); } catch (e) {}
+    return payload;
+  }
+  function getClientId() {
+    try {
+      var existing = localStorage.getItem(CLIENT_ID_KEY);
+      if (existing) return existing;
+    } catch (e) {}
+    var seed = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
+    try { localStorage.setItem(CLIENT_ID_KEY, seed); } catch (e) {}
+    return seed;
+  }
+  function sendConsent(payload, previous) {
+    if (
+      previous &&
+      !!previous.analytics === !!payload.analytics &&
+      !!previous.necessary === !!payload.necessary &&
+      String(previous.version || '') === String(payload.version || '')
+    ) {
+      return;
+    }
+    try {
+      fetch('{{ route('cookie.consent.store') }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrfToken
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          client_id: getClientId(),
+          policy_version: payload.version,
+          analytics: !!payload.analytics,
+          necessary: !!payload.necessary,
+          consent_ts: payload.ts || Date.now()
+        })
+      }).catch(function() {});
+    } catch (e) {}
+  }
+  function showBanner() {
+    if (!banner || !backdrop) return;
+    banner.hidden = false;
+    backdrop.hidden = false;
+  }
+  function hideBanner() {
+    if (!banner || !backdrop) return;
+    banner.hidden = true;
+    backdrop.hidden = true;
+  }
+  function loadCounterOnce() {
+    if (!counterJson || window.__counterLoaded) return;
+    var code = '';
+    try {
+      var raw = counterJson.textContent || '';
+      code = raw ? JSON.parse(raw) : '';
+    } catch (e) {
+      code = '';
+    }
+    if (!code) return;
+    window.__counterLoaded = true;
+    var wrap = document.createElement('div');
+    wrap.innerHTML = code;
+    while (wrap.firstChild) {
+      var node = wrap.firstChild;
+      wrap.removeChild(node);
+      if (node.tagName && node.tagName.toLowerCase() === 'script') {
+        var s = document.createElement('script');
+        if (node.src) s.src = node.src;
+        if (node.type) s.type = node.type;
+        if (node.async) s.async = true;
+        if (node.defer) s.defer = true;
+        s.text = node.text || node.textContent || '';
+        document.head.appendChild(s);
+      } else {
+        document.body.appendChild(node);
+      }
+    }
+  }
+  function deleteAnalyticsCookies() {
+    var names = ['_ym_uid', '_ym_d', '_ym_isad', '_ym_visorc', 'yandexuid', 'yp', 'ymex', 'i'];
+    var domains = [window.location.hostname, '.' + window.location.hostname];
+    names.forEach(function(name) {
+      document.cookie = name + '=; path=/; max-age=0';
+      domains.forEach(function(domain) {
+        document.cookie = name + '=; path=/; domain=' + domain + '; max-age=0';
+      });
+    });
+  }
+  var consent = readConsent();
+  if (!consent || String(consent.version || '') !== POLICY_VERSION) {
+    showBanner();
+  } else if (!!consent.analytics) {
+    loadCounterOnce();
+  }
+  if (acceptBtn) {
+    acceptBtn.addEventListener('click', function() {
+      var previous = readConsent();
+      var payload = writeConsent(true);
+      sendConsent(payload, previous);
+      hideBanner();
+      loadCounterOnce();
+    });
+  }
+  if (rejectBtn) {
+    rejectBtn.addEventListener('click', function() {
+      var previous = readConsent();
+      var payload = writeConsent(false);
+      sendConsent(payload, previous);
+      hideBanner();
+      deleteAnalyticsCookies();
+    });
+  }
+  if (openSettingsBtn) {
+    openSettingsBtn.addEventListener('click', function() {
+      showBanner();
+    });
+  }
+})();
+    </script>
+    <script>
+(function() {
   var KEY = 'stihotvorenie-theme';
   var html = document.documentElement;
   var btn = document.getElementById('theme-toggle');

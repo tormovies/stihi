@@ -520,6 +520,88 @@ a:hover { color: var(--link-hover); }
   font-size: 0.875rem;
   color: var(--text-muted);
 }
+.site-footer-links {
+  margin-top: 0.45rem !important;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  align-items: center;
+}
+.site-footer-links a {
+  color: var(--link);
+  text-decoration: underline;
+}
+.site-footer-cookie-btn {
+  border: 0;
+  background: transparent;
+  color: var(--link);
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.cookie-consent-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 80;
+}
+.cookie-consent {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  width: min(680px, calc(100vw - 1.5rem));
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.25);
+  padding: 1rem 1.1rem;
+  z-index: 81;
+}
+.cookie-consent-title {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.cookie-consent-text {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--text);
+}
+.cookie-consent-text a {
+  color: var(--link);
+}
+.cookie-consent-actions {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.cookie-btn {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+  font: inherit;
+}
+.cookie-btn-primary {
+  background: var(--link);
+  color: #fff;
+  border-color: var(--link);
+}
+.cookie-btn-secondary {
+  background: transparent;
+  color: var(--text);
+}
+.page-content h2 {
+  margin-top: 1.25rem;
+  margin-bottom: 0.4rem;
+  font-size: 1.15rem;
+}
+.page-content p {
+  margin: 0 0 0.8rem;
+}
 @media (max-width: 767px) {
   body {
     padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
@@ -530,6 +612,11 @@ a:hover { color: var(--link-hover); }
   .site-footer {
     padding-top: 1.25rem;
     padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  }
+  .cookie-consent {
+    width: calc(100vw - 1rem);
+    bottom: 0.5rem;
+    padding: 0.9rem;
   }
 }
 

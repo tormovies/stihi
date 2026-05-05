@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\SeoController as AdminSeoController;
 use App\Http\Controllers\Admin\UrlRedirectController as AdminUrlRedirectController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PoemLikeController;
+use App\Http\Controllers\CookieConsentController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\PoemAnalysisController;
 use App\Http\Controllers\SitemapController;
@@ -23,6 +24,11 @@ use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::view('/privacy', 'legal.privacy')->name('legal.privacy');
+Route::view('/cookies-policy', 'legal.cookies')->name('legal.cookies');
+Route::post('/cookie-consent', [CookieConsentController::class, 'store'])
+    ->middleware('throttle:30,1')
+    ->name('cookie.consent.store');
 Route::get('/search', [SearchController::class, 'index'])->name('search.index');
 Route::get('/search/suggest', [SearchController::class, 'suggest'])->name('search.suggest');
 Route::post('/poem/{id}/like', [PoemLikeController::class, 'store'])->name('poem.like')->where('id', '[0-9]+');
