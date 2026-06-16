@@ -6,14 +6,53 @@ use App\Http\Controllers\Controller;
 use App\Models\Author;
 use App\Models\Poem;
 use App\Models\Tag;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PoemController extends Controller
 {
     public function index(Request $request): View
+    {
+        [$sort, $order] = $this->resolveSort($request);
+        $poems = $this->filteredQuery($request, $sort, $order)->paginate(20)->withQueryString();
+        $authors = Author::orderBy('name')->get();
+        $tags = Tag::orderBy('name')->get(['id', 'name']);
+
+        return view('admin.poems.index', compact('poems', 'authors', 'tags', 'sort', 'order'));
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        [$sort, $order] = $this->resolveSort($request);
+        $query = $this->filteredQuery($request, $sort, $order);
+        $filename = 'poems-export-' . now()->format('Y-m-d-His') . '.txt';
+
+        return response()->streamDownload(function () use ($query) {
+            echo "\xEF\xBB\xBF";
+            $first = true;
+            foreach ($query->cursor() as $poem) {
+                if (!$first) {
+                    echo "--------- следующий стих\n\n";
+                }
+                $first = false;
+                $author = e_decode($poem->author->name ?? '');
+                $title = e_decode($poem->title ?? '');
+                echo $author . ' - ' . $title . "\n\n";
+                echo poem_body_plain_export($poem->body) . "\n";
+            }
+        }, $filename, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+        ]);
+    }
+
+    /**
+     * @return array{0: string, 1: 'asc'|'desc'}
+     */
+    private function resolveSort(Request $request): array
     {
         $sort = $request->get('sort', 'updated_at');
         $order = strtolower($request->get('order', 'desc')) === 'asc' ? 'asc' : 'desc';
@@ -22,10 +61,17 @@ class PoemController extends Controller
             $sort = 'updated_at';
         }
 
-        $query = Poem::with('author')
+        return [$sort, $order];
+    }
+
+    private function filteredQuery(Request $request, string $sort, string $order): Builder
+    {
+        $query = Poem::query()
+            ->with('author')
             ->orderBy($sort, $order)
             ->orderBy('updated_at', 'desc')
             ->orderBy('id', 'asc');
+
         if ($request->filled('author_id')) {
             $query->where('author_id', $request->author_id);
         }
@@ -52,10 +98,8 @@ class PoemController extends Controller
                 $query->where('song_status', $request->song_status);
             }
         }
-        $poems = $query->paginate(20)->withQueryString();
-        $authors = Author::orderBy('name')->get();
-        $tags = Tag::orderBy('name')->get(['id', 'name']);
-        return view('admin.poems.index', compact('poems', 'authors', 'tags', 'sort', 'order'));
+
+        return $query;
     }
 
     public function create(): View

@@ -43,6 +43,7 @@
         <input type="number" name="length_from" value="{{ request('length_from') }}" placeholder="от" min="0" step="1" class="admin-filter-number">
         <input type="number" name="length_to" value="{{ request('length_to') }}" placeholder="до" min="0" step="1" class="admin-filter-number">
         <button type="submit" class="admin-btn admin-btn-secondary">Применить</button>
+        <a href="{{ route('admin.poems.export', request()->query()) }}" class="admin-btn admin-btn-secondary">Экспорт в текст</a>
     </div>
 </form>
 <div class="admin-card">

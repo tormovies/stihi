@@ -61,3 +61,34 @@ if (! function_exists('normalize_poem_title')) {
         return str_replace('…', '...', $title);
     }
 }
+
+if (! function_exists('poem_body_plain_export')) {
+    /**
+     * Текст стиха для экспорта: без HTML, с переносами строк.
+     */
+    function poem_body_plain_export(?string $body): string
+    {
+        if ($body === null || trim($body) === '') {
+            return '';
+        }
+
+        $text = e_decode($body);
+        $text = preg_replace("/\r\n|\r/u", "\n", $text);
+
+        if (preg_match('/<[a-zA-Z][^>]*>/', $text)) {
+            // В импорте WordPress строка обычно: «текст<br />\n» — перенос уже есть, br лишний.
+            $text = preg_replace('/<br\s*\/?>/ui', '', $text);
+            $text = preg_replace('/<\/p>\s*<p[^>]*>/ui', "\n", $text);
+            $text = preg_replace('/<\/?p[^>]*>/ui', '', $text);
+            $text = strip_tags($text);
+            $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        }
+
+        $lines = explode("\n", $text);
+        $lines = array_map(static fn ($line) => rtrim($line), $lines);
+        $text = implode("\n", $lines);
+        $text = preg_replace("/\n{3,}/u", "\n\n", $text);
+
+        return trim($text);
+    }
+}
