@@ -24,7 +24,7 @@
     @if(!empty($rawResponse))
         <details class="admin-deepseek-raw-response" style="margin-top: 1rem;">
             <summary>Ответ DeepSeek (сырой JSON)</summary>
-            <pre class="admin-deepseek-raw-pre">{{ e($rawResponse) }}</pre>
+            <pre class="admin-deepseek-raw-pre">{{ $rawResponse }}</pre>
         </details>
     @endif
     <p style="margin-top: 1rem;"><a href="{{ route('admin.deepseek.index') }}" class="admin-btn admin-btn-secondary">← Назад к настройкам</a></p>

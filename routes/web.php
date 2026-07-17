@@ -77,12 +77,18 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::post('deepseek/settings', [AdminDeepSeekController::class, 'store'])->name('deepseek.settings.store');
     Route::post('deepseek/wipe/poems', [AdminDeepSeekController::class, 'wipePoems'])->name('deepseek.wipe.poems');
     Route::post('deepseek/wipe/authors', [AdminDeepSeekController::class, 'wipeAuthors'])->name('deepseek.wipe.authors');
+    Route::post('deepseek/wipe/suno', [AdminDeepSeekController::class, 'wipeSuno'])->name('deepseek.wipe.suno');
     Route::get('deepseek/run', [AdminDeepSeekController::class, 'run'])->name('deepseek.run');
     Route::get('deepseek/run/authors', [AdminDeepSeekController::class, 'runAuthors'])->name('deepseek.run.authors');
     Route::get('deepseek/run/analyses', [AdminDeepSeekController::class, 'runAnalyses'])->name('deepseek.run.analyses');
     Route::get('deepseek/run/tags-seo', [AdminDeepSeekController::class, 'runTagsSeo'])->name('deepseek.run.tags-seo');
     Route::get('deepseek/run/poem-tags', [AdminDeepSeekController::class, 'runPoemTags'])->name('deepseek.run.poem-tags');
+    Route::get('deepseek/run/suno', [AdminDeepSeekController::class, 'runSuno'])->name('deepseek.run.suno');
     Route::get('deepseek/log', [AdminDeepSeekController::class, 'log'])->name('deepseek.log');
+    Route::get('suno', [\App\Http\Controllers\Admin\SunoController::class, 'index'])->name('suno.index');
+    Route::get('suno/{poem}', [\App\Http\Controllers\Admin\SunoController::class, 'show'])->name('suno.show')->where('poem', '[0-9]+');
+    Route::post('suno/{poem}/reanalyze', [\App\Http\Controllers\Admin\SunoController::class, 'reanalyze'])->name('suno.reanalyze')->where('poem', '[0-9]+');
+    Route::delete('suno/analysis/{suno}', [\App\Http\Controllers\Admin\SunoController::class, 'destroy'])->name('suno.destroy');
     Route::post('seo/templates', [AdminSeoController::class, 'updateTemplates'])->name('seo.templates.update');
     Route::post('seo/pages', [AdminSeoController::class, 'storeSeoPage'])->name('seo.pages.store');
     Route::put('seo/pages/{seoPage}', [AdminSeoController::class, 'updateSeoPage'])->name('seo.pages.update');

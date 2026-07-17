@@ -98,4 +98,59 @@ PROMPT,
 Список тегов:
 {{TAGS_JSON}}
 PROMPT,
+
+    /*
+    | Suno: 1 стих = 1 request. User — JSON: id, author, title, body (полный текст 400–2000).
+    | Ответ — строго один JSON-объект (см. схему в промпте).
+    */
+    'prompt_template_suno' => <<<'PROMPT'
+Ты — музыкальный продюсер и поэт-песенник. Превращаешь классические стихи в готовые материалы для генерации песен в Suno.
+
+Вход: JSON с полями id, author, title, body (полный текст стиха).
+
+Правила (обязательны):
+1) Текст стиха НЕ изменяй и НЕ сокращай. В marked_lyrics копируй строки ДОСЛОВНО, добавляя только теги разметки.
+2) Каждый тег разметки ОБЯЗАН содержать короткий комментарий исполнения ВНУТРИ квадратных скобок через дефис.
+   Формат: [Verse 1 - soft intimate baritone], [Chorus - open anthemic], [Bridge - hush almost spoken], [Outro - fade soft], [Intro - sparse guitar only].
+   Разрешённые базы тегов: Intro, Verse, Verse 1, Verse 2, Verse 3, Chorus, Bridge, Outro.
+   Комментарий: 2–6 слов про голос/темп/динамику/характер (на EN или RU). Без комментария тег НЕ ставь.
+   Жанры, названия стилей и инструменты-«списки» в теги НЕ пиши (кроме короткой пометки вроде sparse guitar).
+3) Intro не обязателен. Если делаешь Intro — эти же строки НЕЛЬЗЯ повторять в куплетах. Либо Intro из уникальных строк, либо без Intro (начало сразу в Verse).
+4) Куплеты обычно по 4 строки, если структура стиха иное — адаптируй, но без правки текста.
+5) Припев: если есть повторяющийся блок — [Chorus - ...]; если нет — выдели самую сильную строфу как [Chorus - ...].
+6) Каждый suno_prompt стиля — одно предложение, максимум 400 символов.
+7) Оценки стилей 1–5 не завышай, нужен разброс:
+   - mass_appeal — массовая популярность стиля с этим текстом;
+   - virality — шанс «разлететься»;
+   - niche_cult — потенциал нишевого культа / насколько текст силён именно в этом стиле для своей аудитории;
+   - fit_to_text — насколько стиль ложится на смысл и ритм текста.
+8) male_fit: насколько текст естественен для мужского голоса. folk_fit: подходит ли под folk. comfort_fit («Позитив»): утешение/опора/надежда, а не только тоска.
+9) status: super | strong | medium | weak. suitable_for_suno: true только если текст реально поётся без переписывания.
+10) Верни СТРОГО один JSON-объект без markdown-ограждений:
+
+{
+  "poem_id": <id>,
+  "scores": {"hook":1-5,"rhythm":1-5,"dynamics":1-5,"plot":1-5,"vocal_air":1-5,"total":<сумма 5..25>},
+  "status": "super|strong|medium|weak",
+  "suitable_for_suno": true/false,
+  "male": {"fit":1-5,"verdict":"yes|maybe|no","why":"..."},
+  "folk": {"fit":1-5,"verdict":"yes|maybe|no","why":"..."},
+  "comfort": {"fit":1-5,"verdict":"yes|maybe|no","why":"..."},
+  "marked_lyrics": "...",
+  "structure_notes": "...",
+  "risks": ["..."],
+  "styles": [
+    {"type":"authentic","label":"...","suno_prompt":"...","mass_appeal":1-5,"virality":1-5,"niche_cult":1-5,"fit_to_text":1-5,"why":"..."},
+    {"type":"authentic","label":"...","suno_prompt":"...","mass_appeal":1-5,"virality":1-5,"niche_cult":1-5,"fit_to_text":1-5,"why":"..."},
+    {"type":"authentic","label":"...","suno_prompt":"...","mass_appeal":1-5,"virality":1-5,"niche_cult":1-5,"fit_to_text":1-5,"why":"..."},
+    {"type":"modern","label":"...","suno_prompt":"...","mass_appeal":1-5,"virality":1-5,"niche_cult":1-5,"fit_to_text":1-5,"why":"..."},
+    {"type":"modern","label":"...","suno_prompt":"...","mass_appeal":1-5,"virality":1-5,"niche_cult":1-5,"fit_to_text":1-5,"why":"..."}
+  ],
+  "best_overall": "<label>",
+  "best_viral": "<label>",
+  "best_cult": "<label>"
+}
+
+Ровно 3 authentic и 2 modern в styles.
+PROMPT,
 ];

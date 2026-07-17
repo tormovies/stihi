@@ -106,7 +106,26 @@
                     <option value="30" {{ old('cron_run_poem_tags', $cronRunPoemTags ?? '') === '30' ? 'selected' : '' }}>каждые 30 мин</option>
                 </select>
             </div>
-            <p class="admin-cron-row__hint" style="grid-column: 1 / -1; margin: 0; font-size: 0.9rem; color: var(--text-muted);">На сервере должен быть настроен <code>* * * * * php artisan schedule:run</code>. Расписание применяется при следующем проходе планировщика.</p>
+            <div class="admin-cron-row__field" style="padding: 1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;">
+                <label for="cron_run_suno">Suno-анализ</label>
+                <select id="cron_run_suno" name="cron_run_suno">
+                    <option value="off" {{ old('cron_run_suno', $cronRunSuno ?? 'off') === 'off' ? 'selected' : '' }}>выкл</option>
+                    <option value="1" {{ old('cron_run_suno', $cronRunSuno ?? '') === '1' ? 'selected' : '' }}>каждую 1 мин</option>
+                    <option value="2" {{ old('cron_run_suno', $cronRunSuno ?? '') === '2' ? 'selected' : '' }}>каждые 2 мин</option>
+                    <option value="3" {{ old('cron_run_suno', $cronRunSuno ?? '') === '3' ? 'selected' : '' }}>каждые 3 мин</option>
+                    <option value="4" {{ old('cron_run_suno', $cronRunSuno ?? '') === '4' ? 'selected' : '' }}>каждые 4 мин</option>
+                    <option value="5" {{ old('cron_run_suno', $cronRunSuno ?? '') === '5' ? 'selected' : '' }}>каждые 5 мин</option>
+                    <option value="10" {{ old('cron_run_suno', $cronRunSuno ?? '') === '10' ? 'selected' : '' }}>каждые 10 мин</option>
+                    <option value="15" {{ old('cron_run_suno', $cronRunSuno ?? '') === '15' ? 'selected' : '' }}>каждые 15 мин</option>
+                    <option value="20" {{ old('cron_run_suno', $cronRunSuno ?? '') === '20' ? 'selected' : '' }}>каждые 20 мин</option>
+                    <option value="30" {{ old('cron_run_suno', $cronRunSuno ?? '') === '30' ? 'selected' : '' }}>каждые 30 мин</option>
+                </select>
+            </div>
+            <div class="admin-cron-row__field" style="padding: 1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;">
+                <label for="suno_batch_size">Suno: стихов за тик</label>
+                <input type="number" id="suno_batch_size" name="suno_batch_size" value="{{ old('suno_batch_size', $sunoBatchSize ?? 1) }}" min="1" max="20" step="1" title="1 стих = 1 request; сколько request за один запуск cron">
+            </div>
+            <p class="admin-cron-row__hint" style="grid-column: 1 / -1; margin: 0; font-size: 0.9rem; color: var(--text-muted);">На сервере должен быть настроен <code>* * * * * php artisan schedule:run</code>. Расписание применяется при следующем проходе планировщика. Suno: 1 стих = 1 запрос; «стихов за тик» — сколько таких запросов подряд.</p>
         </div>
     </form>
 </div>
@@ -123,18 +142,23 @@
             @csrf
             <button type="submit" class="admin-btn admin-btn-secondary">Стереть SEO у всех авторов</button>
         </form>
+        <form method="POST" action="{{ route('admin.deepseek.wipe.suno') }}" class="admin-deepseek-wipe-tile" onsubmit="return confirm('Удалить ВСЕ Suno-анализы и начать очередь заново?');">
+            @csrf
+            <button type="submit" class="admin-btn admin-btn-secondary">Сбросить все Suno-анализы</button>
+        </form>
     </div>
 </div>
 
 <div class="admin-card">
     <h2 class="admin-card-title">Ручной запуск</h2>
-    <p class="admin-card-desc">Отправляются только не обработанные. Стихов (SEO): <strong>{{ $unprocessedPoems }}</strong>. Авторов: <strong>{{ $unprocessedAuthors }}</strong>. Анализов (длина ≥ {{ $analysisLengthMin }} знаков): <strong>{{ $unprocessedAnalyses }}</strong>. Тегов без SEO: <strong>{{ $unprocessedTagsSeo }}</strong>. Стихов без тегов: <strong>{{ $unprocessedPoemsForTags }}</strong>. Размер батча и таймаут — из настроек выше.</p>
+    <p class="admin-card-desc">Отправляются только не обработанные. Стихов (SEO): <strong>{{ $unprocessedPoems }}</strong>. Авторов: <strong>{{ $unprocessedAuthors }}</strong>. Анализов (длина ≥ {{ $analysisLengthMin }} знаков): <strong>{{ $unprocessedAnalyses }}</strong>. Тегов без SEO: <strong>{{ $unprocessedTagsSeo }}</strong>. Стихов без тегов: <strong>{{ $unprocessedPoemsForTags }}</strong>. Suno (400–2000, без анализа): <strong>{{ $unprocessedSuno ?? 0 }}</strong>. Размер батча SEO/тегов и таймаут — из настроек выше; Suno — «стихов за тик».</p>
     <div class="admin-deepseek-wipe-tiles" style="margin-top: 0.5rem;">
         <a href="{{ route('admin.deepseek.run') }}" target="_blank" rel="noopener" class="admin-btn admin-btn-primary">Запустить стихи (в новой вкладке)</a>
         <a href="{{ route('admin.deepseek.run.authors') }}" target="_blank" rel="noopener" class="admin-btn admin-btn-primary">Запустить авторов (в новой вкладке)</a>
         <a href="{{ route('admin.deepseek.run.analyses') }}" target="_blank" rel="noopener" class="admin-btn admin-btn-primary">Запустить анализы (в новой вкладке)</a>
         <a href="{{ route('admin.deepseek.run.tags-seo') }}" target="_blank" rel="noopener" class="admin-btn admin-btn-primary">SEO страниц тегов</a>
         <a href="{{ route('admin.deepseek.run.poem-tags') }}" target="_blank" rel="noopener" class="admin-btn admin-btn-primary">Разметка стихов по тегам</a>
+        <a href="{{ route('admin.deepseek.run.suno') }}" target="_blank" rel="noopener" class="admin-btn admin-btn-primary">Запустить Suno</a>
     </div>
     <p class="admin-form-hint" style="margin-top: 0.5rem;">Откроется новая страница: запрос к API, ожидание и результат одного батча.</p>
 </div>

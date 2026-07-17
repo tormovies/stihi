@@ -9,6 +9,7 @@ use App\Models\Poem;
 use App\Models\Setting;
 use App\Models\Tag;
 use App\Services\DeepSeekOptimizeService;
+use App\Services\PoemSunoDeepSeekService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -42,11 +43,15 @@ class DeepSeekController extends Controller
             ->count();
         $unprocessedTagsSeo = Tag::where(fn ($q) => $q->whereNull('meta_title')->orWhere('meta_title', ''))->count();
         $unprocessedPoemsForTags = Poem::whereNotNull('published_at')->whereDoesntHave('tags')->count();
+        $sunoService = app(PoemSunoDeepSeekService::class);
+        $unprocessedSuno = $sunoService->pendingCount();
+        $sunoBatchSize = (int) (Setting::get('suno_batch_size') ?? 1);
 
         $cronRunPoems = Setting::get('cron_run_poems', 'off');
         $cronRunAnalyses = Setting::get('cron_run_analyses', '5');
         $cronRunTagsSeo = Setting::get('cron_run_tags_seo', 'off');
         $cronRunPoemTags = Setting::get('cron_run_poem_tags', 'off');
+        $cronRunSuno = Setting::get('cron_run_suno', 'off');
 
         return view('admin.deepseek.index', [
             'apiKeySet' => $apiKey !== null && $apiKey !== '',
@@ -59,10 +64,13 @@ class DeepSeekController extends Controller
             'unprocessedAnalyses' => $unprocessedAnalyses,
             'unprocessedTagsSeo' => $unprocessedTagsSeo,
             'unprocessedPoemsForTags' => $unprocessedPoemsForTags,
+            'unprocessedSuno' => $unprocessedSuno,
+            'sunoBatchSize' => $sunoBatchSize,
             'cronRunPoems' => $cronRunPoems,
             'cronRunAnalyses' => $cronRunAnalyses,
             'cronRunTagsSeo' => $cronRunTagsSeo,
             'cronRunPoemTags' => $cronRunPoemTags,
+            'cronRunSuno' => $cronRunSuno,
         ]);
     }
 
@@ -77,17 +85,23 @@ class DeepSeekController extends Controller
             'cron_run_analyses' => 'nullable|string|in:off,1,2,3,4,5,10,15,20,30',
             'cron_run_tags_seo' => 'nullable|string|in:off,1,2,3,4,5,10,15,20,30',
             'cron_run_poem_tags' => 'nullable|string|in:off,1,2,3,4,5,10,15,20,30',
+            'cron_run_suno' => 'nullable|string|in:off,1,2,3,4,5,10,15,20,30',
+            'suno_batch_size' => 'nullable|integer|min:1|max:20',
         ]);
 
         Setting::set('cron_run_poems', $request->input('cron_run_poems', 'off'));
         Setting::set('cron_run_analyses', $request->input('cron_run_analyses', '5'));
         Setting::set('cron_run_tags_seo', $request->input('cron_run_tags_seo', 'off'));
         Setting::set('cron_run_poem_tags', $request->input('cron_run_poem_tags', 'off'));
+        Setting::set('cron_run_suno', $request->input('cron_run_suno', 'off'));
         if ($request->filled('timeout')) {
             Setting::set('deepseek_timeout', (string) $request->timeout);
         }
         if ($request->filled('batch_size')) {
             Setting::set('deepseek_batch_size', (string) $request->batch_size);
+        }
+        if ($request->filled('suno_batch_size')) {
+            Setting::set('suno_batch_size', (string) $request->suno_batch_size);
         }
         if ($request->filled('analysis_length_min')) {
             Setting::set('analysis_length_min', (string) $request->analysis_length_min);
@@ -350,6 +364,29 @@ class DeepSeekController extends Controller
         ]);
     }
 
+    public function runSuno(PoemSunoDeepSeekService $service): View
+    {
+        set_time_limit(600);
+        $result = $service->runBatch();
+
+        return view('admin.deepseek.run', [
+            'error' => $result['error'],
+            'processed' => $result['processed'],
+            'failed' => $result['failed'],
+            'entity_label' => 'Suno',
+            'message' => $result['message'],
+            'rawResponse' => $result['rawResponse'],
+        ]);
+    }
+
+    public function wipeSuno(PoemSunoDeepSeekService $service): RedirectResponse
+    {
+        $n = $service->wipeAll();
+
+        return redirect()->route('admin.deepseek.index')
+            ->with('success', "Удалены все Suno-анализы ({$n}). Очередь начнётся с нуля.");
+    }
+
     /**
      * Декодирует HTML-сущности и обрезает строку для SEO-полей (в БД храним обычный текст).
      * Убирает &#039;, &apos;, &quot;, двойное кодирование и т.п.
@@ -404,6 +441,7 @@ class DeepSeekController extends Controller
                     : collect();
             }
             $log->is_analysis = $entityType === 'analysis';
+            $log->is_suno = $entityType === 'suno';
         }
         return view('admin.deepseek.log', compact('logs'));
     }

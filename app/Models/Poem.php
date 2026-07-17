@@ -49,6 +49,11 @@ class Poem extends Model
         return $this->hasOne(PoemAnalysis::class);
     }
 
+    public function sunoAnalysis(): HasOne
+    {
+        return $this->hasOne(PoemSunoAnalysis::class);
+    }
+
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class, 'poem_tag');

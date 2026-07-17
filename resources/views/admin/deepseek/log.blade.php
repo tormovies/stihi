@@ -31,7 +31,7 @@
                     <tr>
                         <td>{{ $log->id }}</td>
                         <td>{{ $log->created_at?->format('d.m.Y H:i:s') }}</td>
-                        <td>@if(($log->entity_type ?? 'poem') === 'author')авторы@elseif(($log->entity_type ?? '') === 'analysis')анализы@elseif(($log->entity_type ?? '') === 'tag')теги (SEO)@elseif(($log->entity_type ?? '') === 'poem_tag')разметка по тегам@elseстихи@endif</td>
+                        <td>@if(($log->entity_type ?? 'poem') === 'author')авторы@elseif(($log->entity_type ?? '') === 'analysis')анализы@elseif(($log->entity_type ?? '') === 'suno')Suno@elseif(($log->entity_type ?? '') === 'tag')теги (SEO)@elseif(($log->entity_type ?? '') === 'poem_tag')разметка по тегам@elseстихи@endif</td>
                         <td>
                             @if($log->status === 'success')
                                 <span class="admin-log-status admin-log-status--success">успех</span>

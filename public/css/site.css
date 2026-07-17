@@ -1587,7 +1587,13 @@ body.admin {
   color: var(--bg-card);
   border-color: var(--accent);
 }
-.admin-btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.admin-btn-primary:hover,
+.admin-btn-primary:focus,
+.admin-btn-primary:visited {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: var(--bg-card);
+}
 .admin-btn-secondary {
   background: var(--bg-card);
   color: var(--text);
@@ -2133,7 +2139,10 @@ body.admin {
   cursor: pointer;
 }
 .admin button[type="submit"].admin-btn-primary:hover,
-.admin .admin-btn-primary[type="submit"]:hover { background: var(--accent-hover); }
+.admin .admin-btn-primary[type="submit"]:hover {
+  background: var(--accent-hover);
+  color: var(--bg-card);
+}
 
 .admin .flex.gap-2 { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 1rem; }
 .admin .flex.gap-2 input[type="text"] { min-width: 200px; }
@@ -2441,3 +2450,98 @@ body.admin {
 .admin-tags-dropdown-item.is-hidden {
   display: none !important;
 }
+
+/* Suno drawer */
+.admin-suno-drawer[hidden] { display: none; }
+.admin-suno-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+}
+.admin-suno-drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+.admin-suno-drawer-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(100vw, 1040px);
+  height: 100%;
+  background: var(--bg-card, #fff);
+  border-left: 1px solid var(--border);
+  box-shadow: -8px 0 24px var(--shadow, rgba(0,0,0,.12));
+  display: flex;
+  flex-direction: column;
+}
+.admin-suno-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.admin-suno-drawer-head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+.admin-suno-drawer-body {
+  padding: 1rem;
+  overflow: auto;
+  flex: 1;
+  font-size: 0.92rem;
+}
+.admin-suno-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 1rem 0 0.5rem;
+}
+.admin-suno-section-head h3 {
+  margin: 0;
+}
+.admin-suno-lyrics {
+  white-space: pre-wrap;
+  background: var(--bg, #f8fafc);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem;
+  max-height: 360px;
+  overflow: auto;
+  font-size: 0.85rem;
+}
+.admin-suno-prompt {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--text-muted, #64748b);
+  word-break: break-word;
+}
+.admin-suno-style-cell {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.admin-suno-style-cell .admin-suno-prompt {
+  flex: 1;
+  min-width: 0;
+}
+.admin-suno-styles-table {
+  min-width: 920px;
+}
+.admin-suno-styles-table th,
+.admin-suno-styles-table td {
+  white-space: nowrap;
+  vertical-align: top;
+}
+.admin-suno-styles-table td:nth-child(2) {
+  white-space: normal;
+  min-width: 280px;
+}
+.admin-suno-row:hover td {
+  background: var(--bg-muted, rgba(0,0,0,.03));
+}
+

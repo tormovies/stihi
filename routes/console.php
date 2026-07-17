@@ -17,11 +17,13 @@ Artisan::command('inspire', function () {
  * 2) Анализы стихов — deepseek:run-analyses (cron_run_analyses).
  * 3) SEO страниц тегов — deepseek:run-tags-seo (cron_run_tags_seo).
  * 4) Разметка стихов по тегам — deepseek:run-poem-tags (cron_run_poem_tags).
+ * 5) Suno-анализ стихов — deepseek:run-suno (cron_run_suno).
  */
 $cronRunPoems = Setting::get('cron_run_poems', 'off');
 $cronRunAnalyses = Setting::get('cron_run_analyses', '5');
 $cronRunTagsSeo = Setting::get('cron_run_tags_seo', 'off');
 $cronRunPoemTags = Setting::get('cron_run_poem_tags', 'off');
+$cronRunSuno = Setting::get('cron_run_suno', 'off');
 
 if ($cronRunPoems !== 'off' && in_array($cronRunPoems, ['1', '2', '3', '4', '5', '10', '15', '20', '30'], true)) {
     match ($cronRunPoems) {
@@ -79,6 +81,21 @@ if ($cronRunPoemTags !== 'off' && in_array($cronRunPoemTags, ['1', '2', '3', '4'
         '15' => Schedule::command('deepseek:run-poem-tags')->everyFifteenMinutes(),
         '20' => Schedule::command('deepseek:run-poem-tags')->cron('6,26,46 * * * *'),
         '30' => Schedule::command('deepseek:run-poem-tags')->everyThirtyMinutes(),
+        default => null,
+    };
+}
+
+if ($cronRunSuno !== 'off' && in_array($cronRunSuno, ['1', '2', '3', '4', '5', '10', '15', '20', '30'], true)) {
+    match ($cronRunSuno) {
+        '1' => Schedule::command('deepseek:run-suno')->cron('* * * * *'),
+        '2' => Schedule::command('deepseek:run-suno')->cron('*/2 * * * *'),
+        '3' => Schedule::command('deepseek:run-suno')->cron('*/3 * * * *'),
+        '4' => Schedule::command('deepseek:run-suno')->cron('*/4 * * * *'),
+        '5' => Schedule::command('deepseek:run-suno')->everyFiveMinutes(),
+        '10' => Schedule::command('deepseek:run-suno')->everyTenMinutes(),
+        '15' => Schedule::command('deepseek:run-suno')->everyFifteenMinutes(),
+        '20' => Schedule::command('deepseek:run-suno')->cron('8,28,48 * * * *'),
+        '30' => Schedule::command('deepseek:run-suno')->everyThirtyMinutes(),
         default => null,
     };
 }
