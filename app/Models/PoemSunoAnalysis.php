@@ -57,7 +57,7 @@ class PoemSunoAnalysis extends Model
     {
         return [
             'yes' => 'да',
-            'maybe' => 'возможно',
+            'maybe' => 'хз',
             'no' => 'нет',
         ];
     }

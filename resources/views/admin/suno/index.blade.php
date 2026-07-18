@@ -153,7 +153,7 @@
                         </td>
                         <td>{{ $a ? (($verdictOptions[$a->folk_verdict] ?? $a->folk_verdict) . ' (' . $a->folk_fit . ')') : '—' }}</td>
                         <td>{{ $a ? (($verdictOptions[$a->comfort_verdict] ?? $a->comfort_verdict) . ' (' . $a->comfort_fit . ')') : '—' }}</td>
-                        <td>{{ $a?->updated_at?->format('d.m.Y H:i') ?? '—' }}</td>
+                        <td>{{ $a?->updated_at?->format('d.m.y') ?? '—' }}</td>
                         <td class="admin-cell-actions" onclick="event.stopPropagation()">
                             @if($a)
                                 <button type="button" class="admin-icon-btn" data-suno-open="{{ $poem->id }}" title="Карточка" aria-label="Карточка">
