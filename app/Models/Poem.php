@@ -65,8 +65,8 @@ class Poem extends Model
             self::SONG_STATUS_NONE => 'Нет',
             self::SONG_STATUS_HAS => 'Есть',
             self::SONG_STATUS_AWAITING => 'Ожидает',
-            self::SONG_STATUS_SELECTED => 'Николай',
-            self::SONG_STATUS_YURA => 'Юра',
+            self::SONG_STATUS_SELECTED => 'Библиотекарь',
+            self::SONG_STATUS_YURA => 'Тараканы',
             self::SONG_STATUS_COMPLEX => 'Сложный',
             self::SONG_STATUS_NOT_SUITABLE => 'Не подходит',
         ];

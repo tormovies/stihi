@@ -124,7 +124,33 @@
                         </td>
                         <td>{{ $a?->score_total ?? '—' }}</td>
                         <td>{{ $a ? $a->statusLabel() : '—' }}</td>
-                        <td>{{ $a ? (($verdictOptions[$a->male_verdict] ?? $a->male_verdict) . ' (' . $a->male_fit . ')') : '—' }}</td>
+                        <td onclick="event.stopPropagation()">
+                            @if($a)
+                                @php
+                                    $maleVerdict = $a->male_verdict ?? 'maybe';
+                                    $maleLabel = ($verdictOptions[$maleVerdict] ?? $maleVerdict) . ' (' . $a->male_fit . ')';
+                                @endphp
+                                <form action="{{ route('admin.suno.male', $a) }}" method="POST" class="admin-suno-male-form">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="male_verdict" value="{{ $maleVerdict }}">
+                                    <button
+                                        type="button"
+                                        class="admin-suno-male-current"
+                                        data-male-open
+                                        data-current-male="{{ $maleVerdict }}"
+                                        title="{{ $maleLabel }}. Нажмите, чтобы сменить"
+                                        aria-label="Male: {{ $maleLabel }}. Нажмите, чтобы сменить"
+                                    >
+                                        <span class="admin-suno-male-dot is-{{ $maleVerdict }}"></span>
+                                        <span>{{ $verdictOptions[$maleVerdict] ?? $maleVerdict }}</span>
+                                        <span class="admin-suno-male-fit">({{ $a->male_fit }})</span>
+                                    </button>
+                                </form>
+                            @else
+                                —
+                            @endif
+                        </td>
                         <td>{{ $a ? (($verdictOptions[$a->folk_verdict] ?? $a->folk_verdict) . ' (' . $a->folk_fit . ')') : '—' }}</td>
                         <td>{{ $a ? (($verdictOptions[$a->comfort_verdict] ?? $a->comfort_verdict) . ' (' . $a->comfort_fit . ')') : '—' }}</td>
                         <td>{{ $a?->updated_at?->format('d.m.Y H:i') ?? '—' }}</td>
@@ -193,6 +219,25 @@
     </div>
 </div>
 
+<div class="admin-song-modal" id="male-verdict-modal" hidden>
+    <div class="admin-song-modal-backdrop" data-male-close></div>
+    <div class="admin-song-modal-card">
+        <h3>Male</h3>
+        <div class="admin-song-modal-options">
+            @foreach($verdictOptions as $value => $label)
+            <button type="button" class="admin-song-modal-btn" data-male-value="{{ $value }}" title="{{ $label }}">
+                <span class="admin-suno-male-dot is-{{ $value }}"></span>
+                <span>{{ $label }}</span>
+            </button>
+            @endforeach
+        </div>
+        <div class="admin-song-modal-actions">
+            <button type="button" class="admin-btn admin-btn-secondary" data-male-close>Отмена</button>
+            <button type="button" class="admin-btn admin-btn-primary" id="male-verdict-confirm">Подтвердить</button>
+        </div>
+    </div>
+</div>
+
 <div class="admin-suno-drawer" id="suno-drawer" hidden>
     <div class="admin-suno-drawer-backdrop" data-suno-close></div>
     <aside class="admin-suno-drawer-panel" aria-label="Карточка Suno">
@@ -224,13 +269,30 @@
             const prev = btn.getAttribute('title') || 'Копировать';
             btn.setAttribute('title', 'Скопировано');
             btn.setAttribute('aria-label', 'Скопировано');
+            showCopyToast('Скопировано');
             setTimeout(() => {
                 btn.setAttribute('title', prev);
                 btn.setAttribute('aria-label', prev);
             }, 1200);
         } catch (e) {
-            alert('Не удалось скопировать');
+            showCopyToast('Не удалось скопировать', true);
         }
+    };
+
+    const showCopyToast = (message, isError = false) => {
+        let toast = document.getElementById('admin-suno-copy-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'admin-suno-copy-toast';
+            toast.className = 'admin-suno-copy-toast';
+            toast.setAttribute('role', 'status');
+            document.body.appendChild(toast);
+        }
+        toast.textContent = message;
+        toast.classList.toggle('is-error', !!isError);
+        toast.classList.add('is-visible');
+        clearTimeout(showCopyToast._timer);
+        showCopyToast._timer = setTimeout(() => toast.classList.remove('is-visible'), 1600);
     };
 
     const open = async (poemId) => {
@@ -271,11 +333,11 @@
                 Позитив: <strong>${esc(a.comfort.verdict)}</strong> (${a.comfort.fit}) — ${esc(a.comfort.why || '')}</p>
                 ${a.structure_notes ? `<p><em>${esc(a.structure_notes)}</em></p>` : ''}
                 ${(a.risks || []).length ? `<p>Риски: ${a.risks.map(esc).join('; ')}</p>` : ''}
-                <div class="admin-suno-section-head">
-                    <h3>Разметка</h3>
-                    <button type="button" class="admin-btn admin-btn-secondary" data-copy-lyrics title="Копировать разметку">Копировать</button>
+                <h3>Разметка</h3>
+                <div class="admin-suno-lyrics-wrap">
+                    <button type="button" class="admin-icon-btn admin-suno-lyrics-copy" data-copy-lyrics title="Копировать разметку" aria-label="Копировать разметку">${copySvg}</button>
+                    <pre class="admin-suno-lyrics" id="suno-marked-lyrics">${esc(a.marked_lyrics)}</pre>
                 </div>
-                <pre class="admin-suno-lyrics" id="suno-marked-lyrics">${esc(a.marked_lyrics)}</pre>
                 <h3>Стили</h3>
                 <p>Лучший overall: <strong>${esc(a.best_overall)}</strong> · viral: <strong>${esc(a.best_viral)}</strong> · cult: <strong>${esc(a.best_cult)}</strong></p>
                 <div class="admin-table-wrap"><table class="table admin-suno-styles-table">
@@ -359,6 +421,54 @@
         const input = activeForm.querySelector('input[name="song_status"]');
         if (!input) return;
         input.value = selectedStatus;
+        activeForm.submit();
+    });
+})();
+</script>
+<script>
+(() => {
+    const modal = document.getElementById('male-verdict-modal');
+    if (!modal) return;
+    let activeForm = null;
+    let selectedVerdict = null;
+
+    const optionButtons = Array.from(modal.querySelectorAll('[data-male-value]'));
+    const openButtons = Array.from(document.querySelectorAll('[data-male-open]'));
+    const closeButtons = Array.from(document.querySelectorAll('[data-male-close]'));
+    const confirmBtn = document.getElementById('male-verdict-confirm');
+
+    const setSelected = (verdict) => {
+        selectedVerdict = verdict;
+        optionButtons.forEach((btn) => {
+            btn.classList.toggle('is-active', btn.dataset.maleValue === verdict);
+        });
+    };
+
+    openButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            activeForm = btn.closest('form');
+            setSelected(btn.dataset.currentMale || 'maybe');
+            modal.hidden = false;
+        });
+    });
+
+    optionButtons.forEach((btn) => {
+        btn.addEventListener('click', () => setSelected(btn.dataset.maleValue));
+    });
+
+    closeButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            modal.hidden = true;
+            activeForm = null;
+            selectedVerdict = null;
+        });
+    });
+
+    confirmBtn?.addEventListener('click', () => {
+        if (!activeForm || !selectedVerdict) return;
+        const input = activeForm.querySelector('input[name="male_verdict"]');
+        if (!input) return;
+        input.value = selectedVerdict;
         activeForm.submit();
     });
 })();

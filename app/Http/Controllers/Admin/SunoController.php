@@ -10,6 +10,7 @@ use App\Services\PoemSunoDeepSeekService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class SunoController extends Controller
@@ -169,6 +170,19 @@ class SunoController extends Controller
         }
 
         return back()->with('success', $result['message'] ?? 'Suno-анализ обновлён.');
+    }
+
+    public function updateMale(Request $request, PoemSunoAnalysis $suno): RedirectResponse
+    {
+        $data = $request->validate([
+            'male_verdict' => ['required', Rule::in(array_keys(PoemSunoAnalysis::verdictOptions()))],
+        ]);
+
+        $suno->update([
+            'male_verdict' => $data['male_verdict'],
+        ]);
+
+        return back()->with('success', 'Male обновлён.');
     }
 
     public function destroy(PoemSunoAnalysis $suno): RedirectResponse

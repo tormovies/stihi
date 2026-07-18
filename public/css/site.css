@@ -1820,6 +1820,33 @@ body.admin {
   cursor: pointer;
 }
 .admin-song-status-current:hover { background: var(--bg); }
+.admin-suno-male-form { margin: 0; }
+.admin-suno-male-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 100%;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 0.85rem;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.admin-suno-male-current:hover { background: var(--bg); }
+.admin-suno-male-fit { color: var(--text-muted); }
+.admin-suno-male-dot {
+  display: block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+.admin-suno-male-dot.is-yes { background: #16a34a; }
+.admin-suno-male-dot.is-maybe { background: #f59e0b; }
+.admin-suno-male-dot.is-no { background: #dc2626; }
 .admin-song-dot {
   display: block;
   width: 0.78rem;
@@ -2494,24 +2521,51 @@ body.admin {
   flex: 1;
   font-size: 0.92rem;
 }
-.admin-suno-section-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin: 1rem 0 0.5rem;
-}
-.admin-suno-section-head h3 {
-  margin: 0;
-}
-.admin-suno-lyrics {
-  white-space: pre-wrap;
+.admin-suno-lyrics-wrap {
+  position: relative;
   background: var(--bg, #f8fafc);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 0.75rem;
   max-height: 360px;
   overflow: auto;
+}
+.admin-suno-lyrics-copy {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  z-index: 1;
+  background: var(--bg-card, #fff);
+}
+.admin-suno-copy-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translateX(-50%) translateY(0.5rem);
+  z-index: 200;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  background: #1f2937;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.admin-suno-copy-toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.admin-suno-copy-toast.is-error {
+  background: #8a1f1f;
+}
+.admin-suno-lyrics {
+  white-space: pre-wrap;
+  margin: 0;
+  padding: 0.75rem 2.5rem 0.75rem 0.75rem;
+  border: 0;
+  background: transparent;
   font-size: 0.85rem;
 }
 .admin-suno-prompt {
