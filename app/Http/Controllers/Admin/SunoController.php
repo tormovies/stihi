@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Author;
 use App\Models\Poem;
 use App\Models\PoemSunoAnalysis;
+use App\Models\Tag;
 use App\Services\PoemSunoDeepSeekService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -23,7 +24,7 @@ class SunoController extends Controller
         }
 
         $query = Poem::query()
-            ->with(['author:id,name,slug', 'sunoAnalysis'])
+            ->with(['author:id,name,slug,years_of_life', 'sunoAnalysis'])
             ->whereNotNull('published_at')
             ->whereBetween('body_length', [400, 2000]);
 
@@ -49,6 +50,9 @@ class SunoController extends Controller
         }
         if ($request->filled('author_id')) {
             $query->where('author_id', $request->author_id);
+        }
+        if ($request->filled('tag_id') && is_numeric($request->tag_id)) {
+            $query->whereHas('tags', fn ($q) => $q->where('tags.id', (int) $request->tag_id));
         }
         if ($request->filled('song_status')) {
             $allowedSong = array_keys(Poem::songStatusOptions());
@@ -104,10 +108,12 @@ class SunoController extends Controller
 
         $poems = $query->paginate(30)->withQueryString();
         $authors = Author::orderBy('name')->get(['id', 'name']);
+        $tags = Tag::orderBy('name')->get(['id', 'name']);
 
         return view('admin.suno.index', [
             'poems' => $poems,
             'authors' => $authors,
+            'tags' => $tags,
             'analysisFilter' => $analysisFilter,
             'sort' => $sort,
             'order' => $order,

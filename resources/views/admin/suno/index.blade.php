@@ -19,61 +19,63 @@
     <p class="alert alert-success" style="background:#fde8e8;color:#8a1f1f;">{{ $errors->first('suno') }}</p>
 @endif
 
-<form method="GET" class="admin-filter-bar">
-    <div class="admin-filter-row">
-        <input type="hidden" name="sort" value="{{ $sort }}">
-        <input type="hidden" name="order" value="{{ $order }}">
-        <select name="analysis" aria-label="Наличие анализа">
-            <option value="with" @selected($analysisFilter === 'with')>С анализом</option>
-            <option value="all" @selected($analysisFilter === 'all')>Все (400–2000)</option>
-            <option value="without" @selected($analysisFilter === 'without')>Без анализа</option>
-        </select>
-        <input type="text" name="q" value="{{ request('q') }}" placeholder="Поиск: автор, название, slug, стиль (Chanson…)">
-        <select name="author_id">
-            <option value="">Все авторы</option>
-            @foreach($authors as $a)
-                <option value="{{ $a->id }}" @selected(request('author_id') == $a->id)>{{ $a->name }}</option>
-            @endforeach
-        </select>
-        <select name="song_status" aria-label="Статус песни">
-            <option value="">Песня: все</option>
-            @foreach(\App\Models\Poem::songStatusOptions() as $value => $label)
-                <option value="{{ $value }}" @selected(request('song_status') === $value)>{{ $label }}</option>
-            @endforeach
-        </select>
-        <select name="status">
-            <option value="">Статус: все</option>
-            @foreach($statusOptions as $val => $label)
-                <option value="{{ $val }}" @selected(request('status') === $val)>{{ $label }}</option>
-            @endforeach
-        </select>
-    </div>
-    <div class="admin-filter-row">
-        <select name="male">
-            <option value="">Male: все</option>
-            @foreach($verdictOptions as $val => $label)
-                <option value="{{ $val }}" @selected(request('male') === $val)>{{ $label }}</option>
-            @endforeach
-        </select>
-        <select name="folk">
-            <option value="">Folk: все</option>
-            @foreach($verdictOptions as $val => $label)
-                <option value="{{ $val }}" @selected(request('folk') === $val)>{{ $label }}</option>
-            @endforeach
-        </select>
-        <select name="comfort">
-            <option value="">Позитив: все</option>
-            @foreach($verdictOptions as $val => $label)
-                <option value="{{ $val }}" @selected(request('comfort') === $val)>{{ $label }}</option>
-            @endforeach
-        </select>
-        <select name="suitable">
-            <option value="">Suno: все</option>
-            <option value="1" @selected(request('suitable') === '1')>подходит</option>
-            <option value="0" @selected(request('suitable') === '0')>не подходит</option>
-        </select>
-        <button type="submit" class="admin-btn admin-btn-secondary">Применить</button>
-    </div>
+<form method="GET" class="admin-filter-bar admin-filter-bar--fluid">
+    <input type="hidden" name="sort" value="{{ $sort }}">
+    <input type="hidden" name="order" value="{{ $order }}">
+    <select name="analysis" aria-label="Наличие анализа">
+        <option value="with" @selected($analysisFilter === 'with')>С анализом</option>
+        <option value="all" @selected($analysisFilter === 'all')>Все (400–2000)</option>
+        <option value="without" @selected($analysisFilter === 'without')>Без анализа</option>
+    </select>
+    <input type="text" name="q" value="{{ request('q') }}" placeholder="Поиск: автор, название, slug, стиль (Chanson…)">
+    <select name="author_id">
+        <option value="">Все авторы</option>
+        @foreach($authors as $a)
+            <option value="{{ $a->id }}" @selected(request('author_id') == $a->id)>{{ $a->name }}</option>
+        @endforeach
+    </select>
+    <select name="tag_id">
+        <option value="">Все теги</option>
+        @foreach($tags as $t)
+            <option value="{{ $t->id }}" @selected(request('tag_id') == $t->id)>{{ $t->name }}</option>
+        @endforeach
+    </select>
+    <select name="song_status" aria-label="Статус песни">
+        <option value="">Песня: все</option>
+        @foreach(\App\Models\Poem::songStatusOptions() as $value => $label)
+            <option value="{{ $value }}" @selected(request('song_status') === $value)>{{ $label }}</option>
+        @endforeach
+    </select>
+    <select name="status">
+        <option value="">Статус: все</option>
+        @foreach($statusOptions as $val => $label)
+            <option value="{{ $val }}" @selected(request('status') === $val)>{{ $label }}</option>
+        @endforeach
+    </select>
+    <select name="male">
+        <option value="">Male: все</option>
+        @foreach($verdictOptions as $val => $label)
+            <option value="{{ $val }}" @selected(request('male') === $val)>{{ $label }}</option>
+        @endforeach
+    </select>
+    <select name="folk">
+        <option value="">Folk: все</option>
+        @foreach($verdictOptions as $val => $label)
+            <option value="{{ $val }}" @selected(request('folk') === $val)>{{ $label }}</option>
+        @endforeach
+    </select>
+    <select name="comfort">
+        <option value="">Позитив: все</option>
+        @foreach($verdictOptions as $val => $label)
+            <option value="{{ $val }}" @selected(request('comfort') === $val)>{{ $label }}</option>
+        @endforeach
+    </select>
+    <select name="suitable">
+        <option value="">Suno: все</option>
+        <option value="1" @selected(request('suitable') === '1')>подходит</option>
+        <option value="0" @selected(request('suitable') === '0')>не подходит</option>
+    </select>
+    <button type="submit" class="admin-btn admin-btn-secondary">Применить</button>
 </form>
 
 <div class="admin-card">
@@ -104,7 +106,17 @@
                         <td>
                             <a href="{{ url('/' . $poem->slug) }}" target="_blank" rel="noopener" onclick="event.stopPropagation()">{{ Str::limit($poem->title, 45) }}</a>
                         </td>
-                        <td>{{ $poem->author?->name }}</td>
+                        <td>
+                            @if($poem->author)
+                                @php $authorRisk = $poem->author->diedLessThanYearsAgo(75); @endphp
+                                <span
+                                    @class(['admin-author-copyright-risk' => $authorRisk])
+                                    @if($authorRisk) title="Умер менее 75 лет назад — не брать" @endif
+                                >{{ $poem->author->name }}</span>
+                            @else
+                                —
+                            @endif
+                        </td>
                         <td onclick="event.stopPropagation()">
                             <form action="{{ route('admin.poems.song-status', $poem) }}" method="POST" class="admin-song-status-form">
                                 @csrf
@@ -143,16 +155,41 @@
                                         aria-label="Male: {{ $maleLabel }}. Нажмите, чтобы сменить"
                                     >
                                         <span class="admin-suno-male-dot is-{{ $maleVerdict }}"></span>
-                                        <span>{{ $verdictOptions[$maleVerdict] ?? $maleVerdict }}</span>
-                                        <span class="admin-suno-male-fit">({{ $a->male_fit }})</span>
+                                        <span>{{ $a->male_fit }}</span>
                                     </button>
                                 </form>
                             @else
                                 —
                             @endif
                         </td>
-                        <td>{{ $a ? (($verdictOptions[$a->folk_verdict] ?? $a->folk_verdict) . ' (' . $a->folk_fit . ')') : '—' }}</td>
-                        <td>{{ $a ? (($verdictOptions[$a->comfort_verdict] ?? $a->comfort_verdict) . ' (' . $a->comfort_fit . ')') : '—' }}</td>
+                        <td>
+                            @if($a)
+                                @php
+                                    $folkVerdict = $a->folk_verdict ?? 'maybe';
+                                    $folkLabel = $verdictOptions[$folkVerdict] ?? $folkVerdict;
+                                @endphp
+                                <span class="admin-suno-verdict-chip" title="Folk: {{ $folkLabel }} ({{ $a->folk_fit }})">
+                                    <span class="admin-suno-male-dot is-{{ $folkVerdict }}"></span>
+                                    <span>{{ $a->folk_fit }}</span>
+                                </span>
+                            @else
+                                —
+                            @endif
+                        </td>
+                        <td>
+                            @if($a)
+                                @php
+                                    $comfortVerdict = $a->comfort_verdict ?? 'maybe';
+                                    $comfortLabel = $verdictOptions[$comfortVerdict] ?? $comfortVerdict;
+                                @endphp
+                                <span class="admin-suno-verdict-chip" title="Позитив: {{ $comfortLabel }} ({{ $a->comfort_fit }})">
+                                    <span class="admin-suno-male-dot is-{{ $comfortVerdict }}"></span>
+                                    <span>{{ $a->comfort_fit }}</span>
+                                </span>
+                            @else
+                                —
+                            @endif
+                        </td>
                         <td>{{ $a?->updated_at?->format('d.m.y') ?? '—' }}</td>
                         <td class="admin-cell-actions" onclick="event.stopPropagation()">
                             @if($a)

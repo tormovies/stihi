@@ -65,7 +65,15 @@
                 @foreach($poems as $poem)
                     <tr>
                         <td>{{ Str::limit($poem->title, 50) }}</td>
-                        <td>{{ $poem->author->name }}</td>
+                        <td>
+                            @if($poem->author)
+                                @php $authorRisk = $poem->author->diedLessThanYearsAgo(75); @endphp
+                                <span
+                                    @class(['admin-author-copyright-risk' => $authorRisk])
+                                    @if($authorRisk) title="Умер менее 75 лет назад — не брать" @endif
+                                >{{ $poem->author->name }}</span>
+                            @endif
+                        </td>
                         <td><a href="{{ url('/' . $poem->slug) }}" target="_blank" rel="noopener" class="admin-slug-link"><code>{{ Str::limit($poem->slug, 30) }}</code></a></td>
                         <td>{{ (int) ($poem->likes ?? 0) }}</td>
                         <td>

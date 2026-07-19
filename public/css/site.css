@@ -1806,6 +1806,13 @@ body.admin {
   display: inline;
 }
 .admin table.table .admin-cell-actions form { margin-left: 0.5rem; }
+.admin-author-copyright-risk {
+  color: #b91c1c;
+  font-weight: 700;
+}
+.theme-dark .admin-author-copyright-risk {
+  color: #f87171;
+}
 .admin-song-status-form { margin: 0; }
 .admin-song-status-current {
   display: inline-flex;
@@ -1821,18 +1828,26 @@ body.admin {
 }
 .admin-song-status-current:hover { background: var(--bg); }
 .admin-suno-male-form { margin: 0; }
-.admin-suno-male-current {
+.admin-suno-male-current,
+.admin-suno-verdict-chip {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.35rem;
-  max-width: 100%;
-  padding: 0.2rem 0.45rem;
+  box-sizing: border-box;
+  min-width: 2.75rem;
+  min-height: 1.9rem;
+  padding: 0.2rem 0.5rem;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--bg-card);
   color: var(--text);
   font-size: 0.85rem;
-  line-height: 1.2;
+  line-height: 1;
+  white-space: nowrap;
+}
+.admin-suno-male-current {
+  max-width: 100%;
   cursor: pointer;
 }
 .admin-suno-male-current:hover { background: var(--bg); }
@@ -2286,6 +2301,20 @@ body.admin {
 .admin-filter-bar select { min-width: 160px; }
 .admin-filter-bar .admin-filter-label { margin-right: 0.25rem; white-space: nowrap; }
 .admin-filter-bar .admin-filter-number { width: 5rem; min-width: 5rem; }
+.admin-filter-bar--fluid > select,
+.admin-filter-bar--fluid > input[type="text"],
+.admin-filter-bar--fluid > input[type="search"] {
+  flex: 1 1 9rem;
+  min-width: 8.5rem;
+  max-width: 100%;
+}
+.admin-filter-bar--fluid > input[type="text"],
+.admin-filter-bar--fluid > input[type="search"] {
+  flex: 2 1 14rem;
+}
+.admin-filter-bar--fluid > .admin-btn {
+  flex: 0 0 auto;
+}
 
 /* Блок «Расписание (cron)» в DeepSeek — плиткой по два в ряд */
 .admin-cron-row {
