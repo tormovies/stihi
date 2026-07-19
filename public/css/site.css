@@ -2550,6 +2550,21 @@ body.admin {
   flex: 1;
   font-size: 0.92rem;
 }
+.admin-suno-row.is-reviewed {
+  opacity: 0.45;
+}
+.admin-suno-row.is-reviewed:hover {
+  opacity: 0.65;
+}
+.admin-suno-reviewed-form { display: inline; margin: 0; }
+.admin-suno-reviewed-action.is-on {
+  color: #16a34a;
+  border-color: rgba(22, 163, 74, 0.45);
+}
+.theme-dark .admin-suno-reviewed-action.is-on {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.45);
+}
 .admin-suno-lyrics-wrap {
   position: relative;
   background: var(--bg, #f8fafc);

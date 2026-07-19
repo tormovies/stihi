@@ -77,9 +77,20 @@ class SunoController extends Controller
             $query->whereHas('sunoAnalysis', fn ($q) => $q->where('suitable_for_suno', $yes));
         }
 
+        // reviewed: '' = all, '0' = unreviewed, '1' = reviewed
+        $reviewedFilter = (string) $request->get('reviewed', '');
+        if (!in_array($reviewedFilter, ['', '0', '1'], true)) {
+            $reviewedFilter = '';
+        }
+        if ($reviewedFilter === '0') {
+            $query->whereHas('sunoAnalysis', fn ($q) => $q->whereNull('reviewed_at'));
+        } elseif ($reviewedFilter === '1') {
+            $query->whereHas('sunoAnalysis', fn ($q) => $q->whereNotNull('reviewed_at'));
+        }
+
         $sort = $request->get('sort', 'updated_at');
         $order = strtolower($request->get('order', 'desc')) === 'asc' ? 'asc' : 'desc';
-        $sortable = ['score_total', 'status', 'folk_fit', 'comfort_fit', 'updated_at'];
+        $sortable = ['score_total', 'status', 'folk_fit', 'comfort_fit', 'updated_at', 'reviewed_at'];
         if (!in_array($sort, $sortable, true)) {
             $sort = 'updated_at';
         }
@@ -97,11 +108,16 @@ class SunoController extends Controller
                         WHEN 'weak' THEN 1
                         ELSE 0 END " . $order
                 );
+            } elseif ($sort === 'reviewed_at') {
+                // Unreviewed first when desc; reviewed first when asc.
+                $query->orderByRaw('poem_suno_analyses.reviewed_at IS NULL ' . ($order === 'desc' ? 'DESC' : 'ASC'))
+                    ->orderBy('poem_suno_analyses.reviewed_at', $order);
             } else {
                 $column = $sort === 'updated_at' ? 'poem_suno_analyses.updated_at' : 'poem_suno_analyses.' . $sort;
                 $query->orderBy($column, $order);
             }
-            $query->orderBy('poems.id');
+            $query->orderByRaw('poem_suno_analyses.reviewed_at IS NULL DESC')
+                ->orderBy('poems.id');
         } else {
             $query->orderBy('poems.id', $order);
         }
@@ -115,6 +131,7 @@ class SunoController extends Controller
             'authors' => $authors,
             'tags' => $tags,
             'analysisFilter' => $analysisFilter,
+            'reviewedFilter' => $reviewedFilter,
             'sort' => $sort,
             'order' => $order,
             'statusOptions' => PoemSunoAnalysis::statusOptions(),
@@ -130,6 +147,10 @@ class SunoController extends Controller
             return response()->json(['error' => 'Нет Suno-анализа'], 404);
         }
 
+        if ($a->reviewed_at === null) {
+            $a->forceFill(['reviewed_at' => now()])->save();
+        }
+
         return response()->json([
             'poem' => [
                 'id' => $poem->id,
@@ -140,9 +161,12 @@ class SunoController extends Controller
                 'body_length' => $poem->body_length,
             ],
             'analysis' => [
+                'id' => $a->id,
                 'status' => $a->status,
                 'status_label' => $a->statusLabel(),
                 'suitable_for_suno' => $a->suitable_for_suno,
+                'reviewed' => true,
+                'reviewed_at' => $a->reviewed_at?->format('d.m.Y H:i'),
                 'scores' => [
                     'hook' => $a->score_hook,
                     'rhythm' => $a->score_rhythm,
@@ -189,6 +213,17 @@ class SunoController extends Controller
         ]);
 
         return back()->with('success', 'Male обновлён.');
+    }
+
+    public function updateReviewed(Request $request, PoemSunoAnalysis $suno): RedirectResponse
+    {
+        $reviewed = $request->boolean('reviewed');
+
+        $suno->update([
+            'reviewed_at' => $reviewed ? ($suno->reviewed_at ?? now()) : null,
+        ]);
+
+        return back()->with('success', $reviewed ? 'Анализ отмечен как просмотренный.' : 'Просмотр сброшен.');
     }
 
     public function destroy(PoemSunoAnalysis $suno): RedirectResponse

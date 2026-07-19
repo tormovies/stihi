@@ -89,6 +89,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('suno/{poem}', [\App\Http\Controllers\Admin\SunoController::class, 'show'])->name('suno.show')->where('poem', '[0-9]+');
     Route::post('suno/{poem}/reanalyze', [\App\Http\Controllers\Admin\SunoController::class, 'reanalyze'])->name('suno.reanalyze')->where('poem', '[0-9]+');
     Route::patch('suno/analysis/{suno}/male', [\App\Http\Controllers\Admin\SunoController::class, 'updateMale'])->name('suno.male');
+    Route::patch('suno/analysis/{suno}/reviewed', [\App\Http\Controllers\Admin\SunoController::class, 'updateReviewed'])->name('suno.reviewed');
     Route::delete('suno/analysis/{suno}', [\App\Http\Controllers\Admin\SunoController::class, 'destroy'])->name('suno.destroy');
     Route::post('seo/templates', [AdminSeoController::class, 'updateTemplates'])->name('seo.templates.update');
     Route::post('seo/pages', [AdminSeoController::class, 'storeSeoPage'])->name('seo.pages.store');

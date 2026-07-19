@@ -247,6 +247,7 @@ class PoemSunoDeepSeekService
                     is_array($data['risks'] ?? null) ? $data['risks'] : []
                 ))),
                 'raw_response' => $raw,
+                'reviewed_at' => null,
             ]
         );
     }

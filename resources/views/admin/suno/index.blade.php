@@ -27,6 +27,11 @@
         <option value="all" @selected($analysisFilter === 'all')>Все (400–2000)</option>
         <option value="without" @selected($analysisFilter === 'without')>Без анализа</option>
     </select>
+    <select name="reviewed" aria-label="Просмотрено">
+        <option value="" @selected(($reviewedFilter ?? '') === '')>Просмотр: все</option>
+        <option value="0" @selected(($reviewedFilter ?? '') === '0')>непросмотренные</option>
+        <option value="1" @selected(($reviewedFilter ?? '') === '1')>просмотренные</option>
+    </select>
     <input type="text" name="q" value="{{ request('q') }}" placeholder="Поиск: автор, название, slug, стиль (Chanson…)">
     <select name="author_id">
         <option value="">Все авторы</option>
@@ -99,10 +104,13 @@
                 @forelse($poems as $poem)
                     @php
                         $a = $poem->sunoAnalysis;
+                        $isReviewed = $a?->isReviewed() ?? false;
                         $currentSongStatus = $poem->song_status ?? \App\Models\Poem::SONG_STATUS_NONE;
                         $songStatusLabel = \App\Models\Poem::songStatusOptions()[$currentSongStatus] ?? $currentSongStatus;
                     @endphp
-                    <tr @if($a) class="admin-suno-row" data-suno-open="{{ $poem->id }}" style="cursor:pointer;" @endif>
+                    <tr
+                        @if($a) class="admin-suno-row {{ $isReviewed ? 'is-reviewed' : '' }}" data-suno-open="{{ $poem->id }}" data-suno-reviewed="{{ $isReviewed ? '1' : '0' }}" style="cursor:pointer;" @endif
+                    >
                         <td>
                             <a href="{{ url('/' . $poem->slug) }}" target="_blank" rel="noopener" onclick="event.stopPropagation()">{{ Str::limit($poem->title, 45) }}</a>
                         </td>
@@ -199,6 +207,37 @@
                                         <circle cx="12" cy="12" r="3"/>
                                     </svg>
                                 </button>
+                                <form action="{{ route('admin.suno.reviewed', $a) }}" method="POST" class="inline admin-suno-reviewed-form">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="reviewed" value="{{ $isReviewed ? '0' : '1' }}">
+                                    @if($isReviewed)
+                                        <button
+                                            type="submit"
+                                            class="admin-icon-btn admin-suno-reviewed-action is-on"
+                                            title="Отметить непросмотренным"
+                                            aria-label="Отметить непросмотренным"
+                                        >
+                                            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                                                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                                                <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
+                                                <path d="M1 1l22 22"/>
+                                            </svg>
+                                        </button>
+                                    @else
+                                        <button
+                                            type="submit"
+                                            class="admin-icon-btn admin-suno-reviewed-action"
+                                            title="Отметить просмотренным"
+                                            aria-label="Отметить просмотренным"
+                                        >
+                                            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M20 6L9 17l-5-5"/>
+                                            </svg>
+                                        </button>
+                                    @endif
+                                </form>
                             @endif
                             <form action="{{ route('admin.suno.reanalyze', $poem) }}" method="POST" class="inline" onsubmit="return confirm('Переанализировать этот стих сейчас?');">
                                 @csrf
@@ -332,6 +371,8 @@
         showCopyToast._timer = setTimeout(() => toast.classList.remove('is-visible'), 1600);
     };
 
+    const hideOnReview = @json(($reviewedFilter ?? '') === '0');
+
     const open = async (poemId) => {
         drawer.hidden = false;
         body.textContent = 'Загрузка…';
@@ -343,6 +384,26 @@
             const a = data.analysis;
             const p = data.poem;
             title.textContent = p.title;
+
+            const row = document.querySelector(`tr.admin-suno-row[data-suno-open="${poemId}"]`);
+            if (row) {
+                row.classList.add('is-reviewed');
+                row.setAttribute('data-suno-reviewed', '1');
+                const form = row.querySelector('.admin-suno-reviewed-form');
+                const input = form?.querySelector('input[name="reviewed"]');
+                const btn = form?.querySelector('.admin-suno-reviewed-action');
+                if (input) input.value = '0';
+                if (btn) {
+                    btn.classList.add('is-on');
+                    btn.setAttribute('title', 'Отметить непросмотренным');
+                    btn.setAttribute('aria-label', 'Отметить непросмотренным');
+                    btn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>`;
+                }
+                if (hideOnReview) {
+                    row.style.opacity = '0.35';
+                }
+            }
+
             const stylesRows = (a.styles || []).map((s, i) => `
                 <tr>
                     <td>${esc(s.type === 'modern' ? 'Осовремененный' : 'Аутентичный')}</td>

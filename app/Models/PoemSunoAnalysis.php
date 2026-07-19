@@ -22,6 +22,7 @@ class PoemSunoAnalysis extends Model
         'marked_lyrics', 'styles',
         'best_overall', 'best_viral', 'best_cult',
         'structure_notes', 'risks', 'raw_response',
+        'reviewed_at',
     ];
 
     protected function casts(): array
@@ -30,7 +31,13 @@ class PoemSunoAnalysis extends Model
             'suitable_for_suno' => 'boolean',
             'styles' => 'array',
             'risks' => 'array',
+            'reviewed_at' => 'datetime',
         ];
+    }
+
+    public function isReviewed(): bool
+    {
+        return $this->reviewed_at !== null;
     }
 
     public function poem(): BelongsTo
