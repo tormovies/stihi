@@ -62,13 +62,12 @@ class DeepSeekOptimizeService
         $userMessage = str_replace('{{POEMS_JSON}}', $json, $promptTemplate);
 
         $maxTokens = (int) (Setting::get('deepseek_max_tokens') ?? self::DEFAULT_MAX_TOKENS);
-        $requestBody = [
-            'model' => 'deepseek-chat',
+        $requestBody = array_merge(deepseek_request_defaults(), [
             'messages' => [['role' => 'user', 'content' => $userMessage]],
             'response_format' => ['type' => 'json_object'],
             'temperature' => 0.3,
             'max_tokens' => $maxTokens,
-        ];
+        ]);
         $requestBodyRaw = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
 
         $response = Http::timeout($timeout)
@@ -204,8 +203,7 @@ class DeepSeekOptimizeService
 
         $systemMessage = $promptTemplate;
         $maxTokens = (int) (Setting::get('deepseek_max_tokens') ?? self::DEFAULT_MAX_TOKENS);
-        $requestBody = [
-            'model' => 'deepseek-chat',
+        $requestBody = array_merge(deepseek_request_defaults(), [
             'messages' => [
                 ['role' => 'system', 'content' => $systemMessage],
                 ['role' => 'user', 'content' => $userMessage],
@@ -213,7 +211,7 @@ class DeepSeekOptimizeService
             'response_format' => ['type' => 'json_object'],
             'temperature' => 0.3,
             'max_tokens' => $maxTokens,
-        ];
+        ]);
         $requestBodyRaw = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
 
         $response = Http::timeout($timeout)
@@ -387,13 +385,12 @@ class DeepSeekOptimizeService
         $userMessage = str_replace('{{TAGS_JSON}}', $json, $promptTemplate);
 
         $maxTokens = (int) (Setting::get('deepseek_max_tokens') ?? self::DEFAULT_MAX_TOKENS);
-        $requestBody = [
-            'model' => 'deepseek-chat',
+        $requestBody = array_merge(deepseek_request_defaults(), [
             'messages' => [['role' => 'user', 'content' => $userMessage]],
             'response_format' => ['type' => 'json_object'],
             'temperature' => 0.3,
             'max_tokens' => $maxTokens,
-        ];
+        ]);
         $requestBodyRaw = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
 
         $response = Http::timeout($timeout)
@@ -534,13 +531,12 @@ class DeepSeekOptimizeService
         $userMessage = str_replace('{{TAGS_JSON}}', $tagsJson, $userMessage);
 
         $maxTokens = (int) (Setting::get('deepseek_max_tokens') ?? self::DEFAULT_MAX_TOKENS);
-        $requestBody = [
-            'model' => 'deepseek-chat',
+        $requestBody = array_merge(deepseek_request_defaults(), [
             'messages' => [['role' => 'user', 'content' => $userMessage]],
             'response_format' => ['type' => 'json_object'],
             'temperature' => 0.3,
             'max_tokens' => $maxTokens,
-        ];
+        ]);
         $requestBodyRaw = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
 
         $response = Http::timeout($timeout)
@@ -636,6 +632,10 @@ class DeepSeekOptimizeService
             '"role": "system"',
             '"model":"deepseek-chat"',
             '"model": "deepseek-chat"',
+            '"model":"deepseek-v4-flash"',
+            '"model": "deepseek-v4-flash"',
+            '"model":"deepseek-v4-pro"',
+            '"model": "deepseek-v4-pro"',
             '"messages":',
             '"messages": [',
         ];

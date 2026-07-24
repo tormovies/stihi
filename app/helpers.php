@@ -92,3 +92,24 @@ if (! function_exists('poem_body_plain_export')) {
         return trim($text);
     }
 }
+
+if (! function_exists('deepseek_request_defaults')) {
+    /**
+     * Базовые поля запроса к DeepSeek Chat Completions (модель + thinking).
+     * V4: thinking по умолчанию enabled — для поведения как у старого deepseek-chat ставим disabled.
+     *
+     * @return array{model: string, thinking: array{type: string}}
+     */
+    function deepseek_request_defaults(): array
+    {
+        $thinking = strtolower((string) config('deepseek.thinking_type', 'disabled'));
+        if (! in_array($thinking, ['disabled', 'enabled'], true)) {
+            $thinking = 'disabled';
+        }
+
+        return [
+            'model' => (string) config('deepseek.model', 'deepseek-v4-flash'),
+            'thinking' => ['type' => $thinking],
+        ];
+    }
+}

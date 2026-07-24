@@ -108,8 +108,7 @@ class PoemSunoDeepSeekService
         ];
         $userMessage = json_encode($userPayload, JSON_UNESCAPED_UNICODE);
 
-        $requestBody = [
-            'model' => 'deepseek-chat',
+        $requestBody = array_merge(deepseek_request_defaults(), [
             'messages' => [
                 ['role' => 'system', 'content' => $systemPrompt],
                 ['role' => 'user', 'content' => $userMessage],
@@ -117,7 +116,7 @@ class PoemSunoDeepSeekService
             'response_format' => ['type' => 'json_object'],
             'temperature' => 0.3,
             'max_tokens' => $maxTokens,
-        ];
+        ]);
         $requestBodyRaw = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
 
         $response = Http::timeout($timeout)
@@ -378,6 +377,70 @@ class PoemSunoDeepSeekService
             ->whereBetween('body_length', [self::LENGTH_MIN, self::LENGTH_MAX])
             ->whereDoesntHave('sunoAnalysis')
             ->count();
+    }
+
+    /**
+     * ID стихов, у которых Suno-запрос падал (лог), и анализа до сих пор нет.
+     *
+     * @return list<int>
+     */
+    public function failedPendingPoemIds(): array
+    {
+        $candidateIds = [];
+        DeepSeekLog::query()
+            ->where('entity_type', 'suno')
+            ->whereIn('status', ['api_error', 'parse_error'])
+            ->orderByDesc('id')
+            ->limit(3000)
+            ->get(['failed_ids'])
+            ->each(function (DeepSeekLog $log) use (&$candidateIds) {
+                foreach ($log->failed_ids ?? [] as $id) {
+                    $id = (int) $id;
+                    if ($id > 0) {
+                        $candidateIds[$id] = true;
+                    }
+                }
+            });
+
+        if ($candidateIds === []) {
+            return [];
+        }
+
+        return Poem::query()
+            ->whereIn('id', array_keys($candidateIds))
+            ->whereNotNull('published_at')
+            ->whereBetween('body_length', [self::LENGTH_MIN, self::LENGTH_MAX])
+            ->whereDoesntHave('sunoAnalysis')
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
+    public function failedPendingCount(): int
+    {
+        return count($this->failedPendingPoemIds());
+    }
+
+    /**
+     * Сбросить ошибочные Suno-логи (api_error/parse_error → cleared).
+     * Стихи без анализа остаются в обычной очереди — cron переделает сам.
+     *
+     * @return array{cleared_logs: int, pending_poems: int}
+     */
+    public function clearFailedLogs(): array
+    {
+        $pendingPoems = $this->failedPendingCount();
+
+        $clearedLogs = DeepSeekLog::query()
+            ->where('entity_type', 'suno')
+            ->whereIn('status', ['api_error', 'parse_error'])
+            ->update(['status' => 'cleared']);
+
+        return [
+            'cleared_logs' => $clearedLogs,
+            'pending_poems' => $pendingPoems,
+        ];
     }
 
     public function wipeAll(): int

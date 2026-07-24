@@ -151,7 +151,7 @@
 
 <div class="admin-card">
     <h2 class="admin-card-title">Ручной запуск</h2>
-    <p class="admin-card-desc">Отправляются только не обработанные. Стихов (SEO): <strong>{{ $unprocessedPoems }}</strong>. Авторов: <strong>{{ $unprocessedAuthors }}</strong>. Анализов (длина ≥ {{ $analysisLengthMin }} знаков): <strong>{{ $unprocessedAnalyses }}</strong>. Тегов без SEO: <strong>{{ $unprocessedTagsSeo }}</strong>. Стихов без тегов: <strong>{{ $unprocessedPoemsForTags }}</strong>. Suno (400–2000, без анализа): <strong>{{ $unprocessedSuno ?? 0 }}</strong>. Размер батча SEO/тегов и таймаут — из настроек выше; Suno — «стихов за тик».</p>
+    <p class="admin-card-desc">Отправляются только не обработанные. Стихов (SEO): <strong>{{ $unprocessedPoems }}</strong>. Авторов: <strong>{{ $unprocessedAuthors }}</strong>. Анализов (длина ≥ {{ $analysisLengthMin }} знаков): <strong>{{ $unprocessedAnalyses }}</strong>. Тегов без SEO: <strong>{{ $unprocessedTagsSeo }}</strong>. Стихов без тегов: <strong>{{ $unprocessedPoemsForTags }}</strong>. Suno (400–2000, без анализа): <strong>{{ $unprocessedSuno ?? 0 }}</strong>. Suno с ошибкой в логе (ещё без анализа): <strong>{{ $failedSunoPending ?? 0 }}</strong>. Размер батча SEO/тегов и таймаут — из настроек выше; Suno — «стихов за тик».</p>
     <div class="admin-deepseek-wipe-tiles" style="margin-top: 0.5rem;">
         <a href="{{ route('admin.deepseek.run') }}" target="_blank" rel="noopener" class="admin-btn admin-btn-primary">Запустить стихи (в новой вкладке)</a>
         <a href="{{ route('admin.deepseek.run.authors') }}" target="_blank" rel="noopener" class="admin-btn admin-btn-primary">Запустить авторов (в новой вкладке)</a>
@@ -159,6 +159,12 @@
         <a href="{{ route('admin.deepseek.run.tags-seo') }}" target="_blank" rel="noopener" class="admin-btn admin-btn-primary">SEO страниц тегов</a>
         <a href="{{ route('admin.deepseek.run.poem-tags') }}" target="_blank" rel="noopener" class="admin-btn admin-btn-primary">Разметка стихов по тегам</a>
         <a href="{{ route('admin.deepseek.run.suno') }}" target="_blank" rel="noopener" class="admin-btn admin-btn-primary">Запустить Suno</a>
+        @if(($failedSunoPending ?? 0) > 0)
+        <form method="POST" action="{{ route('admin.deepseek.clear.suno-failed') }}" class="admin-deepseek-wipe-tile" onsubmit="return confirm('Сбросить ошибки Suno в логе? Стихи без анализа останутся в очереди — cron переделает сам.');">
+            @csrf
+            <button type="submit" class="admin-btn admin-btn-secondary" title="Пометить ошибочные логи как сброшенные. Переанализ делает обычный cron.">Сбросить ошибки Suno</button>
+        </form>
+        @endif
     </div>
     <p class="admin-form-hint" style="margin-top: 0.5rem;">Откроется новая страница: запрос к API, ожидание и результат одного батча.</p>
 </div>

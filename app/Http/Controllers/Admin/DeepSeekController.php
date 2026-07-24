@@ -45,6 +45,7 @@ class DeepSeekController extends Controller
         $unprocessedPoemsForTags = Poem::whereNotNull('published_at')->whereDoesntHave('tags')->count();
         $sunoService = app(PoemSunoDeepSeekService::class);
         $unprocessedSuno = $sunoService->pendingCount();
+        $failedSunoPending = $sunoService->failedPendingCount();
         $sunoBatchSize = (int) (Setting::get('suno_batch_size') ?? 1);
 
         $cronRunPoems = Setting::get('cron_run_poems', 'off');
@@ -65,6 +66,7 @@ class DeepSeekController extends Controller
             'unprocessedTagsSeo' => $unprocessedTagsSeo,
             'unprocessedPoemsForTags' => $unprocessedPoemsForTags,
             'unprocessedSuno' => $unprocessedSuno,
+            'failedSunoPending' => $failedSunoPending,
             'sunoBatchSize' => $sunoBatchSize,
             'cronRunPoems' => $cronRunPoems,
             'cronRunAnalyses' => $cronRunAnalyses,
@@ -206,13 +208,12 @@ class DeepSeekController extends Controller
         $userMessage = str_replace('{{AUTHORS_JSON}}', $json, $promptTemplate);
 
         $maxTokens = (int) (Setting::get('deepseek_max_tokens') ?? self::DEFAULT_MAX_TOKENS);
-        $requestBody = [
-            'model' => 'deepseek-chat',
+        $requestBody = array_merge(deepseek_request_defaults(), [
             'messages' => [['role' => 'user', 'content' => $userMessage]],
             'response_format' => ['type' => 'json_object'],
             'temperature' => 0.3,
             'max_tokens' => $maxTokens,
-        ];
+        ]);
         $requestBodyRaw = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
 
         $response = Http::timeout($timeout)
@@ -377,6 +378,15 @@ class DeepSeekController extends Controller
             'message' => $result['message'],
             'rawResponse' => $result['rawResponse'],
         ]);
+    }
+
+    public function clearSunoFailed(PoemSunoDeepSeekService $service): RedirectResponse
+    {
+        $result = $service->clearFailedLogs();
+
+        return redirect()->route('admin.deepseek.index')
+            ->with('success', "Сброшены ошибки Suno в логе ({$result['cleared_logs']}). "
+                . "Стихов без анализа в очереди: {$result['pending_poems']} — cron переделает сам.");
     }
 
     public function wipeSuno(PoemSunoDeepSeekService $service): RedirectResponse

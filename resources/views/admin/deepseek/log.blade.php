@@ -39,6 +39,8 @@
                                 <span class="admin-log-status admin-log-status--error">ошибка API</span>
                             @elseif($log->status === 'parse_error')
                                 <span class="admin-log-status admin-log-status--warn">ошибка разбора</span>
+                            @elseif($log->status === 'cleared')
+                                <span class="admin-log-status">сброшено</span>
                             @else
                                 {{ $log->status }}
                             @endif

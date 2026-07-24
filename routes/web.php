@@ -84,6 +84,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('deepseek/run/tags-seo', [AdminDeepSeekController::class, 'runTagsSeo'])->name('deepseek.run.tags-seo');
     Route::get('deepseek/run/poem-tags', [AdminDeepSeekController::class, 'runPoemTags'])->name('deepseek.run.poem-tags');
     Route::get('deepseek/run/suno', [AdminDeepSeekController::class, 'runSuno'])->name('deepseek.run.suno');
+    Route::post('deepseek/clear/suno-failed', [AdminDeepSeekController::class, 'clearSunoFailed'])->name('deepseek.clear.suno-failed');
     Route::get('deepseek/log', [AdminDeepSeekController::class, 'log'])->name('deepseek.log');
     Route::get('suno', [\App\Http\Controllers\Admin\SunoController::class, 'index'])->name('suno.index');
     Route::get('suno/{poem}', [\App\Http\Controllers\Admin\SunoController::class, 'show'])->name('suno.show')->where('poem', '[0-9]+');

@@ -2,6 +2,14 @@
 
 return [
     /*
+    | Модель API. С 2026-07-24 deepseek-chat / deepseek-reasoner недоступны.
+    | deepseek-v4-flash — замена chat (быстро/дёшево). deepseek-v4-pro — дороже/умнее.
+    | У V4 thinking по умолчанию включён — для прежнего поведения chat задаём disabled.
+    */
+    'model' => env('DEEPSEEK_MODEL', 'deepseek-v4-flash'),
+    'thinking_type' => env('DEEPSEEK_THINKING_TYPE', 'disabled'), // disabled|enabled
+
+    /*
     | Шаблон запроса к DeepSeek. Подстановка {{POEMS_JSON}} заменяется на
     | JSON-массив объектов: id, poet, title, poem (первые 100 символов текста).
     | В ответе ожидается JSON с полем items или response — массив объектов
