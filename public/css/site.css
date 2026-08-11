@@ -1900,6 +1900,7 @@ body.admin {
 .theme-dark .admin-song-dot.is-not_suitable { color: #f87171; }
 .admin-song-dot.is-complex { background: #38bdf8; }
 .admin-song-dot.is-yura { background: #ea580c; }
+.admin-song-dot.is-prepensioner { background: #7c3aed; }
 .admin-song-dot.is-awaiting { background: #ec4899; }
 .admin-song-modal[hidden] { display: none; }
 .admin-song-modal {
