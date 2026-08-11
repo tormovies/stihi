@@ -17,6 +17,7 @@ class Poem extends Model
     public const SONG_STATUS_COMPLEX = 'complex';
     public const SONG_STATUS_YURA = 'yura';
     public const SONG_STATUS_AWAITING = 'awaiting';
+    public const SONG_STATUS_PREPENSIONER = 'prepensioner';
 
     protected $fillable = [
         'author_id', 'slug', 'title', 'body', 'body_length',
@@ -67,6 +68,7 @@ class Poem extends Model
             self::SONG_STATUS_AWAITING => 'Ожидает',
             self::SONG_STATUS_SELECTED => 'Библиотекарь',
             self::SONG_STATUS_YURA => 'Тараканы',
+            self::SONG_STATUS_PREPENSIONER => 'Предпенсионер',
             self::SONG_STATUS_COMPLEX => 'Сложный',
             self::SONG_STATUS_NOT_SUITABLE => 'Не подходит',
         ];
